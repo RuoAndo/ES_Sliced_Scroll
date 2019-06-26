@@ -1,6 +1,6 @@
 # ES_Sliced_Scroll - rev.2019.06.26
 
-Elasticsearch provides scrollAPI for retrieving large numbers of results (or even all results) from a single search request, in much the same way as you would use a cursor on a traditional database. Unfortunately, in sequential manner, single scroll API invocation takes long time (more than 24 hours) to retrieve huge data data ranging from millions to billions.
+Elasticsearch provides scrollAPI for retrieving large numbers of results (or even all results) from a single search request, in much the same way as you would use a cursor on a traditional database. Unfortunately, in sequential manner, single scroll API invocation takes long time (more than 24 hours in general) to retrieve huge data data ranging from millions to billions.
 
 <img src="scrollAPI.jpg" width=80%>
 
