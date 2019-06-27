@@ -1,15 +1,16 @@
 #!/bin/bash
 ############################################
 #
-# 【Summary】
+#  Description:
 #     Detriveing data from Elasticsearch in CSV format.
 #
-# 【usage】
+#
+#  usage:
 #     ./getSessionDataCSv.sh "start_time" "end_time"
 #
-#     ＜各引数の説明＞
-#         抽出開始日時：必須 抽出期間の開始日時（yyyy/mm/dd hh24:mi）※capture_timeで絞り込みする
-#         抽出終了日時：必須 抽出期間の終了日時（yyyy/mm/dd hh24:mi）※capture_timeで絞り込みする
+#  Argument format:
+#     start_time: yyyy/mm/dd hh24:mi
+#     end_time: yyyy/mm/dd hh24:mi
 #
 ############################################
 # Parameter settings
@@ -17,131 +18,130 @@
 # Level of multiplex
 MULTIPLE=20
 
-# Elasticsearch接続パラメータ
+# Elasticsearch connection parameters
 # Please change these four itmes in your environment
 USR=your_name
 PASSWD=your_passwd
 ADDRESS=X.X.X.X:9200
 INDEXNAME=index_name
 
-# ファイル出力ディレクトリ
+# Output file directory 
 OUTPUT_DIR=/data1/Output_SessionData
 
-# 出力ファイル圧縮フラグ
+# Flag: whether output file should be decompressed or not 
 COMPRESS_FLG=OFF
 
-# 実行ログファイル名
+# Log file name
 LOG_FILE=info_getSessionDataCSv.log
 
-## クエリ実行間隔
+# Query Interval
 QUERY_EXE_INTERVAL=5
 
 ############################################
-# サブ関数
+# Subroutines
 ############################################
 function printParamErr() {
     echo "--------------------------------------------"
-    echo "-- 【使用方法】"
-    echo "--     ./getSessionDataCSv.sh \"抽出開始日時\" \"抽出終了日時\""
+    echo "-- [Usage] "
+    echo "--     ./getSessionDataCSv.sh \"start_time\" \"end_time\""
     echo "--"
-    echo "--     例) ./getSessionDataCSv.sh \"2018/06/22 18:00\" \"2018/06/22 18:59\""
+    echo "--     example: ./getSessionDataCSv.sh \"2018/06/22 18:00\" \"2018/06/22 18:59\""
     echo "--"
-    echo "--     ＜各引数の説明＞"
+    echo "--     Argument format:"
     echo "--"
-    echo "--         抽出開始日時：必須 抽出期間の開始日時（yyyy/mm/dd hh24:mi）※capture_timeで絞り込みする"
-    echo "--"
-    echo "--         抽出終了日時：必須 抽出期間の終了日時（yyyy/mm/dd hh24:mi）※capture_timeで絞り込みする"
+    echo "--         start_time: yyyy/mm/dd hh24:mi - filtering with capture_time"
+    echo "--         end_time: yyyy/mm/dd hh24:mi - filtering with capture_time" 
     echo "--------------------------------------------"
     exit 1
 }
 
 function printDescription() {
    echo "--------------------------------------------"                                        | tee -a ${LOG_FILE}
-   echo "-- 多重度：${MULTIPLE}"                                                              | tee -a ${LOG_FILE}
+   echo "-- Level of multiplex: ${MULTIPLE}"                                                  | tee -a ${LOG_FILE}
    echo "--------------------------------------------"                                        | tee -a ${LOG_FILE}
-   echo "-- 取得予定総件数：${total_num} 件"                                                  | tee -a ${LOG_FILE}
+   echo "-- The total number of data to be retrieved: ${total_num} "                          | tee -a ${LOG_FILE}
    echo "--------------------------------------------"                                        | tee -a ${LOG_FILE}
-   echo "-- 実行ログファイル：${LOG_FILE}                                                   " | tee -a ${LOG_FILE}
-   echo "--------------------------------------------" | tee -a ${LOG_FILE}
-   echo "-- 出力CSVファイル：${OUTPUT_DIR}/OUTPUT_${FILE_START}-${FILE_END}_[多重度].csv" | tee -a ${LOG_FILE}
-   echo "--------------------------------------------"                                    | tee -a ${LOG_FILE}
+   echo "-- Log file: ${LOG_FILE}                    "                                        | tee -a ${LOG_FILE}
+   echo "--------------------------------------------"                                        | tee -a ${LOG_FILE}
+   echo "-- Output CSV: ${OUTPUT_DIR}/OUTPUT_${FILE_START}-${FILE_END}_[Multiplicity].csv"    | tee -a ${LOG_FILE}
+   echo "--------------------------------------------"                                        | tee -a ${LOG_FILE}
 }
 
 ####################################
-### パラメータチェック
+### Parameter checking
 ####################################
-## 引数
+## Arguments
 if [ $# -ne 1 -a $# -ne 2 ]; then
     echo "--------------------------------------------"
-    echo "-- ParamError：引数が正しくありません"
+    echo "-- ParamError: Invalid parameter"
     echo "$0 $1 $2"
     printParamErr
 fi
 
-## 抽出開始日時
+## Setting start_time
 START_TIME=$1
 
 if [ ${#START_TIME} -ne 16 ]; then
     echo "--------------------------------------------"
-    echo "-- ParamError：抽出開始日時の桁数が正しくありません"
+    echo "-- ParamError: Invalid number of digits of start_time"
     printParamErr
 fi
 
-## 抽出終了日時
+## Setting end_time
 END_TIME=$2
 
 if [ ${#END_TIME} -ne 16 ]; then
     echo "--------------------------------------------"
-    echo "-- ParamError：抽出終了日時の桁数が正しくありません"
+    echo "-- ParamError: Invalid number of digits of end_time"
     printParamErr
 fi
 
-## 開始、終了チェック
-## 時刻を秒に変換する
+## Checking start_time and end_time
+## transforming _time into seconds
 START_TIME_SECOND=`date -d "${START_TIME}" '+%s'`
 END_TIME_SECOND=`date -d "${END_TIME}" '+%s'`
 
 if [ ${START_TIME_SECOND} -ge ${END_TIME_SECOND} ]; then
     echo "--------------------------------------------"
-    echo "-- ParamError：開始、終了日時が同じ、もしくは逆転しています"
+    echo "-- ParamError: Invalid start_time and end_time (identical or upside-down)"
     echo "--------------------------------------------"
     exit 1
 fi
 
-# 秒追加
+# Adding seconds value
 START_TIME=`date +"%Y/%m/%d %H:%M:%S" -d "${START_TIME}"`
 END_TIME=`date +"%Y/%m/%d %H:%M:%S" -d "${END_TIME}"`
 
-## ディレクトリチェック
+## Directory checking
 if [ ! -e "${OUTPUT_DIR}" ]; then
     echo "--------------------------------------------"
-    echo "-- OutPutDirectoryError：出力先ディレクトリが見つかりません"
+    echo "-- OutPutDirectoryError: Output directory not found"
     echo "--------------------------------------------"
     exit 1
 fi
 
 ############################################
-# 前処理
+# Pre-processing
 ############################################
 max=${MULTIPLE}
 slice_max=`expr ${max} - 1`
-# 出力ファイル用
+# Output file
 FILE_START=`date +"%Y%m%d_%H%M" -d "${START_TIME}"`
 FILE_END=`date +"%Y%m%d_%H%M" -d "${END_TIME}"`
 
 cd $(dirname $0)
 
-# 出力ファイルが存在している場合は削除する
+# Delete output file if existed
 if [ "$(find ${OUTPUT_DIR} -maxdepth 1 -name OUTPUT_${FILE_START}-${FILE_END}*.csv)" != '' ]; then
     \rm -f ${OUTPUT_DIR}/OUTPUT_${FILE_START}-${FILE_END}*.csv
 fi
 
 ############################################
-# 実行
+# Execution
 ############################################
-echo "== データ出力処理開始: "`date +"%Y/%m/%d %H:%M:%S"`" ==" | tee -a ${LOG_FILE}
+echo "== Starting data retrieval: "`date +"%Y/%m/%d %H:%M:%S"`" ==" | tee -a ${LOG_FILE}
 
-# total件数取得
+# Obtain the total number of data
 echo '{"query":{                                              '  > count.json
 echo '        "bool":{                                        ' >> count.json
 echo '            "must":[                                    ' >> count.json
@@ -149,7 +149,7 @@ echo '                {                                       ' >> count.json
 echo '                    "range":{                           ' >> count.json
 echo '                        "capture_time":{                ' >> count.json
 echo '                            "gte":"'$START_TIME'",      ' >> count.json
-echo '                            "lt":"'$END_TIME'"         ' >> count.json
+echo '                            "lt":"'$END_TIME'"          ' >> count.json
 echo '                        }                               ' >> count.json
 echo '                    }                                   ' >> count.json
 echo '                }                                       ' >> count.json
@@ -160,39 +160,39 @@ echo '}                                                       ' >> count.json
 
 total_num=`/bin/curl -s -u ${USR}:${PASSWD} -XGET "http://${ADDRESS}/${INDEXNAME}/_count" -H 'Content-Type: application/json' -d @count.json | /usr/local/bin/jq -r ".count"`
 
-# 出力説明
+# Description of outputs
 printDescription
 
-# データ取得処理
+# Date retrival time
 NOW_TIME=${START_TIME}
 
-## 時刻を秒に変換する
+## Transforming _time to seconds
 NOW_TIME_SECOND=`date -d "${NOW_TIME}" '+%s'`
 
-## クエリ実行回数
+## The number of query issued
 QUERY_EXE_NUM=`expr \( ${END_TIME_SECOND} - ${NOW_TIME_SECOND} \) / \( ${QUERY_EXE_INTERVAL} \* 60 \)`
 if [ `expr \( ${END_TIME_SECOND} - ${NOW_TIME_SECOND} \) % \( ${QUERY_EXE_INTERVAL} \* 60 \)` -ne 0 ];then
     QUERY_EXE_NUM=`expr ${QUERY_EXE_NUM} + 1`
 fi
 
-## クエリ実行用日時
+## Date for query execution
 DATE_FROM=`date +"%Y/%m/%d %H:%M:%S" -d "${START_TIME}"`
 DATE_TO=`date +"%Y/%m/%d %H:%M:%S" -d "${START_TIME} ${QUERY_EXE_INTERVAL} minutes"`
 
-## 処理カウンタ
+## Counter for processing
 CNT=0
 
-echo -n "-- 対象データを取得しています... 進捗状況：${QUERY_EXE_NUM} / ["
+echo -n "-- Retrieving data... PROGRESS: ${QUERY_EXE_NUM} / ["
 
 while [ ${NOW_TIME_SECOND} -lt ${END_TIME_SECOND} ]
 do
 
-  # クエリのDATE_TOが終了条件を超えていたら、終了条件の時間までを取得する
+  # Obtain remaining time if the DATE_TO exceeds end_time
   if [ `date -d "${DATE_TO}" '+%s'` -gt ${END_TIME_SECOND} ]; then
       DATE_TO=${END_TIME}
   fi
   
-  # 件数取得
+  # Obtain the number of retrived data
   echo '{"query":{                                              '  > count.json
   echo '        "bool":{                                        ' >> count.json
   echo '            "must":[                                    ' >> count.json
@@ -213,7 +213,7 @@ do
 
   if [ ${get_num} -ne 0 ]; then
 
-    # データ取得(多重で非同期実行)
+    # Data retrieval (async, multiplexed) 
     for i in `seq 0 ${slice_max}`
     do
 
@@ -261,7 +261,7 @@ do
        .device_name                                                                    \
       ] | @csv" >> ${OUTPUT_DIR}/OUTPUT_${FILE_START}-${FILE_END}_${i}.csv &
 
-      # 説明)：出力外項目は以下
+      # NOTICE): Items not retrived by this script
       #   .flags,                                                                         \
       #   .source_user,                                                                   \
       #   .action_source,                                                                 \
@@ -283,10 +283,10 @@ do
       #   .destination_user,                                                              \
       #   .session_id,                                                                    \
 
-    # 非同期実行終了
+    # Synchronizing - checking if the aync threads are all done.
     done
 
-    # 出力状況確認
+    # Checking output status
     while :
     do
       exec_num=`ps -ef | grep getSessionDataSlicedScroll.py | grep python | wc -l`
@@ -306,7 +306,7 @@ do
   NOW_TIME=`date +"%Y/%m/%d %H:%M:%S" -d "${NOW_TIME} ${QUERY_EXE_INTERVAL} minutes"`
   NOW_TIME_SECOND=`date -d "${NOW_TIME}" '+%s'`
   
-  # 進捗状況
+  # Progress status
   CNT=`expr ${CNT} + 1`
   if [ `expr ${CNT} % 10` -eq 0 ]; then
       echo -n "+"
@@ -314,23 +314,23 @@ do
       echo -n "*"
   fi
 
-# 全処理終了
+# All done
 done
 echo "]"
 
 echo "--------------------------------------------"
-echo "== データ出力処理終了: "`date +"%Y/%m/%d %H:%M:%S"`" ==" | tee -a ${LOG_FILE}
+echo "== Data output is finished: "`date +"%Y/%m/%d %H:%M:%S"`" ==" | tee -a ${LOG_FILE}
 
 ##############
-# 後処理
+# Post-processing
 ##############
 if [ ${COMPRESS_FLG} = "ON" ];then
-  echo "== 出力ファイル圧縮処理開始: "`date +"%Y/%m/%d %H:%M:%S"`" =="
+  echo "== Starting the decompression of output fle: "`date +"%Y/%m/%d %H:%M:%S"`" =="
   zip -jqm ${OUTPUT_DIR}/OUTPUT_${FILE_START}-${FILE_END}.zip ${OUTPUT_DIR}/OUTPUT_${FILE_START}-${FILE_END}*.csv
-  echo "== 出力ファイル圧縮処理終了: "`date +"%Y/%m/%d %H:%M:%S"`" =="
+  echo "== Decompresion is done. "`date +"%Y/%m/%d %H:%M:%S"`" =="
 fi
 
-# 一時ファイル削除
+# Deleting temporary files
 \rm ./count.json 
 
 if [ "$(find . -maxdepth 1 -name "search_*.json")" != '' ]; then

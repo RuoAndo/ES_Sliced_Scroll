@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-このスクリプトではエイリアスから全ログをSlicedScrollを用いて非同期で検索する。
+This script retrieves whole data from alias in async manner using SclicedScrill
 """
 import sys
 import logging
@@ -26,7 +26,7 @@ from elasticsearch import Elasticsearch
 import datetime
 import json
  
-# jsonファイルを読み込む
+# Reading JSON file
 f = open(search_file)
 data = json.load(f)
 f.close()
@@ -34,11 +34,11 @@ f.close()
 class Search_Sessionlog_Sliced_Scroll(object):
     def main(self):
 
-        # ログ出力設定
+        # Log output settings
         logging.config.fileConfig('logging.conf')
         logger = logging.getLogger('Search_Sessionlog_Sliced_Scroll')
 
-        logger.info('%s のデータ出力を開始しました',search_file)
+        logger.info('Starting data output of %s',search_file)
 
         self.es = Elasticsearch(
             [address],
@@ -62,7 +62,7 @@ class Search_Sessionlog_Sliced_Scroll(object):
         print response
 
         num=1
-        # 全ログを検索する
+        # Searching all data
         while 0 < len(res["hits"]["hits"]):
             res = self.es.scroll(scroll_id=scroll_id, scroll="30s")
             response_scroll = json.dumps(res, indent=2, separators=(',', ': '))
@@ -70,14 +70,14 @@ class Search_Sessionlog_Sliced_Scroll(object):
             # output
             print response_scroll
 
-             # 性能優先のためログ出力を抑制 以下コメントアウト
+             # Mitigating verbose log output for performace
 #            num+=1
 #            mod = num % 10
 #            if mod == 0:
 #                mult = num * 10000
-#                logger.info('%s のデータ出力済件数 : %s 件',search_file, '{:,}'.format(mult))
+#                logger.info('# of data output of %s: %s',search_file, '{:,}'.format(mult))
 
-        logger.info('%s のデータ出力が完了しました',search_file)
+        logger.info('Data output of %s is done.',search_file)
 
 if __name__ == '__main__':
     search_sessionlog_all = Search_Sessionlog_Sliced_Scroll()
