@@ -6,16 +6,16 @@ Elasticsearch provides scroll API for retrieving large numbers of results (or ev
 
 This figure depicts multiplexed scroll API of Elasticsearch. Key technique here is sliced scroll which is introduced in Elasticserch 5.0.0. Usually scroll queries return a lot of documents.By using sliced scroll, it is possible to split the scroll in multiple slices which can be consumed independently As shown in this figure, each process 1-6 is responsible for slices 1-6. Concerning process1 (slice1), it issues the query for ﬁve shards in data nodes. In total, 6(slices)∗5(shards) = 30(threads) are launched.
 
-# Usage:
-
+# Usage
+Five lines should be changed according to your environment.
 <pre>
 # Elasticsearch connection parameters
 # Please change these four itmes in your environment
-USR= # user name #
-PASSWD= # password of Elasticsearch #
-ADDRESS= X.X.X.X:9200 # IP address and port number "
-INDEXNAME= # index name #
+USR=user_name # user name 
+PASSWD=elasticpasswd # password of Elasticsearch 
+ADDRESS= X.X.X.X:9200 # IP address and port number 
+INDEXNAME=index_name # index name 
 
 # Output file directory 
-OUTPUT_DIR= # /root/Output_SessionData #
+OUTPUT_DIR=/root/Output_SessionData 
 </pre>
