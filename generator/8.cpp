@@ -82,7 +82,7 @@ int main(void)
 
   ofstream outputfile("random_data.txt");
   
-  for (int i = 0; i < 100000000; ++i) {    
+  for (int i = 0; i < 10; ++i) {    
 
     long long r = randN(mt);
     string tmpstring = to_string(r);
@@ -171,7 +171,52 @@ int main(void)
     outputfile << "," << "\"" << destIP << "\"";
     
     outputfile << "," << "\"" << GetRandom(1,65535) << "\"";
-    
+
+    // country code
+    outputfile<< "," << "\"" << random_string(2,randchar)<< "\"";
+
+    // protocol
+    outputfile<< "," << "\"" << random_string(3,randchar)<< "\"";
+
+    // application
+    outputfile<< "," << "\"" << random_string(9,randchar)<< "\"";
+
+    // subtype
+    outputfile<< "," << "\"" << random_string(3,randchar)<< "\"";
+
+    // action
+    outputfile<< "," << "\"" << random_string(5,randchar)<< "\"";
+
+    // session-end-reason
+    outputfile<< "," << "\"" << random_string(8,randchar)<< "\"";
+
+    // repeat-count
+    outputfile << "," << "\"" << GetRandom(1,9) << "\"";
+
+    // category
+    outputfile<< "," << "\"" << random_string(26,randchar)<< "\"";
+
+    // repeat-count
+    outputfile << "," << "\"" << GetRandom(1,1000) << "\"";
+
+    // repeat-count
+    outputfile << "," << "\"" << GetRandom(1,1000) << "\"";
+
+    // repeat-count
+    outputfile << "," << "\"" << GetRandom(1,1000) << "\"";
+
+    // repeat-count
+    outputfile << "," << "\"" << GetRandom(1,1000) << "\"";
+
+    // repeat-count
+    outputfile << "," << "\"" << GetRandom(1,1000) << "\"";
+
+    // repeat-count
+    outputfile << "," << "\"" << GetRandom(1,1000) << "\"";
+
+    // device name
+    outputfile<< "," << "\"" << "rand-pa1" << "\"";
+
     outputfile << endl;
     }
 
