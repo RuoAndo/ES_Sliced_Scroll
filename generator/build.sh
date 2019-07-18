@@ -1,2 +1,2 @@
-g++ 4.cpp -lm -std=c++11
+g++ -o $1 ${1}.cpp -lm -std=c++11
 
