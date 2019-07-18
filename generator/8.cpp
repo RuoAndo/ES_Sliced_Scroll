@@ -82,7 +82,7 @@ int main(void)
 
   ofstream outputfile("random_data.txt");
   
-  for (int i = 0; i < 10; ++i) {    
+  for (int i = 0; i < 100000; ++i) {    
 
     long long r = randN(mt);
     string tmpstring = to_string(r);
@@ -218,7 +218,7 @@ int main(void)
     outputfile<< "," << "\"" << "rand-pa1" << "\"";
 
     outputfile << endl;
-    }
+  }
 
   outputfile.close();
   
