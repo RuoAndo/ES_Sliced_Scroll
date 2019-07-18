@@ -9,7 +9,7 @@ Usage: ./8 [the number of data to be generated]
 100000 random_data.txt
 
 # head -n 2 random_data.txt                                                        
-"2019-05-01 08:38:45.010","2019-05-01 08:38:45.010","2019-05-01 08:38:45.010","841","225.152.82.39","25846","ua","246.94.163.161","51321","aI","SCu","HFCi1qAnY","Xub","Aregp","ab8tqr2Y","8","cyX3duDunIjVkTzAMIFLO7S8WA","912","198","336","769","278","554","rand-pa1"
+"2019-05-01 08:38:45.010","2019-05-01 08:38:45.010","2019-05-01 08:38:45.010","841","*.*.82.39","25846","ua","*.*.163.161","51321","aI","SCu","HFCi1qAnY","Xub","Aregp","ab8tqr2Y","8","cyX3duDunIjVkTzAMIFLO7S8WA","912","198","336","769","278","554","rand-pa1"
 </pre>
 
 Fields description.
