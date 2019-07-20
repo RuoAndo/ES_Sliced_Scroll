@@ -94,8 +94,8 @@ int main( int argc, char* argv[] ) {
 	const string csv_file = std::string(argv[1]); 
 	vector<vector<string>> data; 
 
-	std::remove("trans-tmp");
-	ofstream outputfile("trans-tmp");
+	std::remove("tmp-trans");
+	ofstream outputfile("tmp-trans");
 
 	try {
 	  Csv objCsv(csv_file);

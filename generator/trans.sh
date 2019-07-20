@@ -7,5 +7,7 @@ while read line; do
     echo $nLines
     ./trans $line $nLines
     cp $line ${line}.bak
-    wc -l trans-tmp 
+    wc -l tmp-trans
+    rm -rf ${line}
+    cp tmp-trans ${line}
 done < list
