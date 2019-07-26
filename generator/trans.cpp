@@ -75,6 +75,8 @@ int main( int argc, char* argv[] ) {
   int counter = 0;
   int N = atoi(argv[2]);  
 
+  int line_counter = 0;
+  
   struct in_addr inaddr;
   char *some_addr;
 
@@ -114,35 +116,39 @@ int main( int argc, char* argv[] ) {
 	    std::mt19937 mt(rnd());
 	    std::uniform_int_distribution<long long> randN(0, 4294967295);
 
-	    char del = '.';
-  
-	    r = randN(mt);
-	    tmpstring = to_string(r);
+	    // char del = '.';
+
+	    for(int j=0; j < 6; j++)
+	      {
+		r = randN(mt);
+		tmpstring = to_string(r);
     
-	    std::bitset<32> s = std::bitset<32>(stoull(tmpstring));
-	    string bs = s.to_string();
+		std::bitset<32> s = std::bitset<32>(stoull(tmpstring));
+		string bs = s.to_string();
 
-	    string bs1 = bs.substr(0,8);
-	    int bi1 =  bitset<8>(bs1).to_ulong();
+		string bs1 = bs.substr(0,8);
+		int bi1 =  bitset<8>(bs1).to_ulong();
     
-	    string bs2 = bs.substr(8,8);
-	    int bi2 =  bitset<8>(bs2).to_ulong();
+		string bs2 = bs.substr(8,8);
+		int bi2 =  bitset<8>(bs2).to_ulong();
 
-	    string bs3 = bs.substr(16,8);
-	    int bi3 =  bitset<8>(bs3).to_ulong();
+		string bs3 = bs.substr(16,8);
+		int bi3 =  bitset<8>(bs3).to_ulong();
     
-	    string bs4 = bs.substr(24,8);
-	    int bi4 =  bitset<8>(bs4).to_ulong();
+		string bs4 = bs.substr(24,8);
+		int bi4 =  bitset<8>(bs4).to_ulong();
 
-	    string sourceIP = "\"" + to_string(bi1) + "." + to_string(bi2) + "." + to_string(bi3) + "." + to_string(bi4) + "\"";
+		string sourceIP = "\"" + to_string(bi1) + "." + to_string(bi2) + "." + to_string(bi3) + "." + to_string(bi4) + "\"";
 
-	    outputfile << rec[0] << "," << rec[1] << "," << rec[2] << "," << rec[3] << "," << sourceIP << "," 
-	         << rec[5] << "," << rec[6] << "," << sourceIP << "," << rec[8] << "," << rec[9] << "," 
-	         << rec[10] << "," << rec[11] << "," << rec[12] << "," << rec[13] << "," << rec[14] << "," 	 
-	         << rec[15] << "," << rec[16] << "," << rec[17] << "," << rec[18] << "," << rec[19] << ","	   
-	         << rec[20] << "," << rec[21] << "," << rec[22] << "," << rec[23] << endl;
+		outputfile << rec[0] << "," << rec[1] << "," << rec[2] << "," << rec[3] << "," << sourceIP << "," 
+			   << rec[5] << "," << rec[6] << "," << sourceIP << "," << rec[8] << "," << rec[9] << "," 
+			   << rec[10] << "," << rec[11] << "," << rec[12] << "," << rec[13] << "," << rec[14] << ","
+			   << rec[15] << "," << rec[16] << "," << rec[17] << "," << rec[18] << "," << rec[19] << ","
+			   << rec[20] << "," << rec[21] << "," << rec[22] << "," << rec[23] << endl;
+	      }
+	    
 	  }
-
+	 
 	  outputfile.close();
 
 	}
