@@ -77,42 +77,113 @@ int main( int argc, char* argv[] )
 
   std::random_device rnd;
   std::mt19937 mt(rnd());
-  std::uniform_int_distribution<long long> randN(20190701000000000, 20190701235959000);
+  std::uniform_int_distribution<long> randD(20190702, 20190702);
+  std::uniform_int_distribution<long> randH(0, 23);
+  std::uniform_int_distribution<long> randM(0, 59);
+  std::uniform_int_distribution<long> randS(0, 59);
+  std::uniform_int_distribution<long> randMS(0, 1000);
 
+  long date;
+  long hour;
+  long minute;
+  long second;
+  long msec;
+  
   std::vector<long> tms;
+
+  string tmpstring;
+  string tmp_hour;
+  string tmp_minute;
+  string tmp_second;
+  string tmp_msec;
+  
   long long r;
   
-  // std::vector vc(N, 0);  
-
-  ofstream outputfile("random_data.txt");
-
   for (int i = 0; i < N; ++i) {
-    r = randN(mt);
+    date = randD(mt);
+    hour = randH(mt);
+    minute = randM(mt);
+    second = randS(mt);
+    msec = randMS(mt);
+
+    if(hour < 10)
+      tmp_hour = "0" + to_string(hour);
+    else
+      tmp_hour = to_string(hour);
+
+    if(minute < 10)
+      tmp_minute = "0" + to_string(minute);
+    else
+      tmp_minute = to_string(minute);
+
+    if(second < 10)
+      tmp_second = "0" + to_string(second);
+    else
+      tmp_second = to_string(second);
+
+    if(msec < 10)
+      tmp_msec = "00" + to_string(msec);
+    else if(msec < 100)
+      tmp_msec = "0" + to_string(msec);
+    else
+      tmp_msec = to_string(msec);
+
+    // cout << tmp_msec << endl;
+    
+    tmpstring = to_string(date) + tmp_hour + tmp_hour + tmp_minute + tmp_msec;
+    // cout << tmpstring << endl;
+    r = stoll(tmpstring);
     tms.push_back(r);
   }
 
   std::sort(tms.begin(), tms.end());
+
+  ofstream outputfile("random_data.txt");
   
   for (int i = 0; i < N; ++i) {    
-    string tmpstring = to_string(tms[i]);
 
-    for (int j = 0; j < 3; j++)
-      {
-	outputfile << "\"" << tmpstring.substr( 0, 4 )
-	     << "-"
-	     << tmpstring.substr( 4, 2 ) 
-	     << "-"
-	     << tmpstring.substr( 6, 2 )
-	     << " "
-	     << tmpstring.substr( 8, 2 )
-	     << ":"
-	     << tmpstring.substr( 10, 2 )
-	     << ":"
-	     << tmpstring.substr( 12, 2 )
-	     << "."
-	     << tmpstring.substr( 14, 3 )
-	     << "\"" << "," ;
-      }
+    tmpstring = to_string(tms[i]);
+
+    outputfile << "\"" << tmpstring.substr( 0, 4 )
+	       << "/"
+	       << tmpstring.substr( 4, 2 ) 
+	       << "/"
+	       << tmpstring.substr( 6, 2 )
+	       << " "
+	       << tmpstring.substr( 8, 2 )
+	       << ":"
+	       << tmpstring.substr( 10, 2 )
+	       << ":"
+	       << tmpstring.substr( 12, 2 )
+	       << "."
+	       << tmpstring.substr( 14, 3 )
+	       << "\"" << "," ;
+
+    outputfile << "\"" << tmpstring.substr( 0, 4 )
+	       << "/"
+	       << tmpstring.substr( 4, 2 ) 
+	       << "/"
+	       << tmpstring.substr( 6, 2 )
+	       << " "
+	       << tmpstring.substr( 8, 2 )
+	       << ":"
+	       << tmpstring.substr( 10, 2 )
+	       << ":"
+	       << tmpstring.substr( 12, 2 )
+	       << "\"" << "," ;
+
+    outputfile << "\"" << tmpstring.substr( 0, 4 )
+	       << "/"
+	       << tmpstring.substr( 4, 2 ) 
+	       << "/"
+	       << tmpstring.substr( 6, 2 )
+	       << " "
+	       << tmpstring.substr( 8, 2 )
+	       << ":"
+	       << tmpstring.substr( 10, 2 )
+	       << ":"
+	       << tmpstring.substr( 12, 2 )
+	       << "\"" << "," ;
 
     outputfile << "\"" << GetRandom(1,1000) << "\"" << ",";
 
@@ -238,4 +309,5 @@ int GetRandom(int min,int max)
 {
 	return min + (int)(rand()*(max-min+1.0)/(1.0+RAND_MAX));
 }
+
 
