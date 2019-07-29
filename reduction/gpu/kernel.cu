@@ -30,22 +30,47 @@ void transfer(unsigned long long *key, long *value, unsigned long long *key_out,
     // long *d_B;
     unsigned int t, travdirtime;
 
+    int GPU_number = 0;
+
+    cout << "transfer:threadID:" << thread_id << ",data size:" << "," << data_size << endl;
+
     thrust::host_vector<unsigned long long> h_vec_key(data_size);
-    thrust::host_vector<unsigned long long> h_vec_value(data_size);
+    thrust::host_vector<long> h_vec_value(data_size);
 
     for(int i=0; i < data_size; i++)
     {
 	h_vec_key[i] = key[i];
 	h_vec_value[i] = value[i];
+
+	// cout << "transfer:threadID:" << thread_id << "," << key[i] << "," << value[i] << endl;
+	// cout << "transfer:threadID:" << thread_id << "," << h_vec_key[i] << "," << h_vec_value[i] << endl;
+
+	/*
+	if(i < 3)
+	     {
+	     cout << "transfer:threadID:" << thread_id << "," << key[i] << "," << value[i] << endl;
+	     cout << "transfer:threadID:" << thread_id << "," << h_vec_key[i] << "," << h_vec_value[i] << endl;
+	     }
+	*/
+    }
+
+    // thrust::sort_by_key(h_vec_key.begin(), h_vec_key.end(), h_vec_value.begin());
+
+    for(int i=0; i < 3; i++)
+    {
+	cout << h_vec_key[i] << "," << h_vec_value[i] << endl;
     }
 
     start_timer(&t);
-    
-    cudaSetDevice(thread_id);
+
+    GPU_number = thread_id - 1;
+    cudaSetDevice(GPU_number);
     
     thrust::device_vector<unsigned long long> d_vec_key(data_size);
     thrust::device_vector<long> d_vec_value(data_size);
-    
+
+    // thrust::sort_by_key(h_vec_key.begin(), h_vec_key.end(), h_vec_value.begin());
+
     thrust::copy(h_vec_key.begin(), h_vec_key.end(), d_vec_key.begin());
     thrust::copy(h_vec_value.begin(), h_vec_value.end(), d_vec_value.begin());
     
@@ -55,7 +80,7 @@ void transfer(unsigned long long *key, long *value, unsigned long long *key_out,
 
     /* reduction */
     start_timer(&t);
-    
+
     thrust::sort_by_key(d_vec_key.begin(), d_vec_key.end(), d_vec_value.begin());
 
     thrust::device_vector<unsigned long long> d_vec_key_out(data_size);
@@ -70,30 +95,18 @@ void transfer(unsigned long long *key, long *value, unsigned long long *key_out,
     travdirtime = stop_timer(&t);
     print_timer(travdirtime);
 
-    for(int i = 0; i < 5; i++)
-    {
-	cout << "threadID:" << thread_id << "-" << d_vec_key_out[i] << "," << d_vec_value_out[i] << endl;
-    }
-
-    /*
-    start_timer(&t);
-    for(int i = 0; i < new_size; i++)
-    {
-	key_out[i] =  d_vec_key_out[i];
-	value_out[i] =  d_vec_value_out[i];
-    }
-
-    cout << "thread:" << thread_id << " - transfer(rev) done with new_size " << new_size << endl;
-    travdirtime = stop_timer(&t);
-    print_timer(travdirtime);
-    */
-
     start_timer(&t);
     thrust::host_vector<unsigned long long> h_vec_key_2(data_size);
     thrust::host_vector<long> h_vec_value_2(data_size);
 
     thrust::copy(d_vec_value_out.begin(),d_vec_value_out.end(),h_vec_value_2.begin());
     thrust::copy(d_vec_key_out.begin(),d_vec_key_out.end(),h_vec_key_2.begin());
+
+    for(int i = 0; i < 3; i++)
+    {
+	cout << "[reduction result] threadID:" << thread_id << ":" << h_vec_key_2[i] << ","
+	     << h_vec_value_2[i] << endl;
+    }
 
     for(int i = 0; i < new_size_r; i++)
     {
@@ -107,26 +120,6 @@ void transfer(unsigned long long *key, long *value, unsigned long long *key_out,
 
     (*new_size) = new_size_r;
 
-    /*
-    for(int i = 0; i < 5; i++)
-    {
-	cout << "threadID:" << thread_id << "-" << h_vec_key_2[i] << "," << h_vec_value_2[i] << endl;
-    }
-    */
-
-    /*
-    start_timer(&t);
-
-    cudaSetDevice(thread_id);
-    cudaMalloc((unsigned long long**)&d_A, kBytes);
-    cudaMalloc((long**)&d_B, vBytes);
-    cudaMemcpy(d_A, key, kBytes, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_B, value, vBytes, cudaMemcpyHostToDevice);
-
-    cout << "thread:" << thread_id << " - transfer done." << endl;
-    travdirtime = stop_timer(&t);
-    print_timer(travdirtime);
-    */
 }
 
 void kernel(long *h_key, long *h_value_1, long *h_value_2, string filename, int size)
