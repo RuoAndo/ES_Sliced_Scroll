@@ -39,10 +39,10 @@ using namespace tbb;
 
 // 2 / 1024
 
-// CPU
-#define WORKER_THREAD_NUM_CPU 4
-// GPU
-#define WORKER_THREAD_NUM_GPU 4
+// CPU (-1) actural number of CPU (threads) is +1, 4->3 
+#define WORKER_THREAD_NUM_CPU 2
+// GPU (-1) actural number of GPU is +1
+#define WORKER_THREAD_NUM_GPU 2
 
 #define MAX_QUEUE_NUM 6
 #define END_MARK_FNAME   "///"

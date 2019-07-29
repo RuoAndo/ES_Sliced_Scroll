@@ -114,7 +114,8 @@ void transfer(unsigned long long *key, long *value, unsigned long long *key_out,
 	value_out[i] =  h_vec_value_2[i];
     }
 
-    cout << "thread:" << thread_id << " - transfer(rev) done with new_size " << new_size_r << endl;
+    cout << "thread:" << thread_id << " - transfer(rev) done with new_size " << new_size_r
+    	 << "(" << data_size << ")" << endl;
     travdirtime = stop_timer(&t);
     print_timer(travdirtime);
 
