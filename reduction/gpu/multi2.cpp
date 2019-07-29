@@ -40,9 +40,9 @@ using namespace tbb;
 // 2 / 1024
 
 // CPU
-#define WORKER_THREAD_NUM_CPU 3
+#define WORKER_THREAD_NUM_CPU 4
 // GPU
-#define WORKER_THREAD_NUM_GPU 3
+#define WORKER_THREAD_NUM_GPU 4
 
 #define MAX_QUEUE_NUM 6
 #define END_MARK_FNAME   "///"
@@ -687,34 +687,31 @@ int main(int argc, char* argv[]) {
         targ[i].filenum = 0;
         targ[i].cpuid = i%cpu_num;
     }
-
+    result.fname = NULL;
+    
     pthread_mutex_init(&result.mutex, NULL);
 
     pthread_create(&master, NULL, (void*)master_func, (void*)&targ[0]);
-    for (i = 1; i < WORKER_THREAD_NUM_CPU + 1; ++i) {
+    for (i = 1; i < WORKER_THREAD_NUM_CPU; ++i) {
         targ[i].id = i;
         pthread_create(&worker[i], NULL, (void*)worker_func, (void*)&targ[i]);
     }
-    for (i = 1; i < WORKER_THREAD_NUM_CPU + 1; ++i) 
+    for (i = 1; i < WORKER_THREAD_NUM_CPU; ++i) 
         pthread_join(worker[i], NULL);
 
-    // print_result(&targ[0]);
+    print_result(&targ[0]);
 
     cout << "2nd phase" << endl;
     thread_num = 2;
 
-    for (i = 1; i < WORKER_THREAD_NUM_GPU + 1; ++i) {
+    for (i = 1; i < WORKER_THREAD_NUM_GPU; ++i) {
         targ_2[i].id = i;
         pthread_create(&worker_2[i], NULL, (void*)worker_func_2, (void*)&targ_2[i]);
     }
 	
-    for (i = 1; i < WORKER_THREAD_NUM_GPU + 1; ++i) 
+    for (i = 1; i < WORKER_THREAD_NUM_GPU; ++i) 
         pthread_join(worker_2[i], NULL);
     
-    /*
-    typedef tbb::concurrent_hash_map<long, int> iTbb_Vec_timestamp;
-    static iTbb_Vec_timestamp TbbVec_timestamp; 
-    */
 
     /* for automatic sorting, std::map is used */
     std::map<unsigned long long, long> final;
