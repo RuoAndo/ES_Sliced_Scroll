@@ -164,9 +164,9 @@ int main( int argc, char* argv[] )
 	       << tmpstring.substr( 14, 3 )
 	       << "\"" << "," ;
 
-    outputfile << "\"" << GetRandom(1,1000) << "\"" << ",";
+    outputfile << "\"" << GetRandom(1,1000) << "\"";
 
-    outputfile << "," << "\"" << GetRandom(1,65535);
+    outputfile << "," << "\"" << GetRandom(1,65535) << "\"";
 
     outputfile << endl;
   }
