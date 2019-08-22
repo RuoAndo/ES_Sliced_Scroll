@@ -63,3 +63,17 @@ Fields description.
   - 23  bytes_received
   - 24  device_name
 </pre>
+
+<pre>
+# time ./aipr 1000000000                                                         
+real    56m15.670s
+user    39m38.850s
+sys     16m35.885s
+
+# head -n 2 random_data.txt                                                      
+"2019/07/02 00:00:00.000","841","25846"
+"2019/07/02 00:00:00.000","784","52326"
+
+# ls -alh random_data.txt 
+-rw-r--r-- 1 root root 37G  8月 21 14:16 random_data.txt
+</pre>
