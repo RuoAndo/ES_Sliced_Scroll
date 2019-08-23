@@ -24,13 +24,54 @@
 
 using namespace std;
 
+void sort(unsigned long long *key, long *value, unsigned long long *key_out, long *value_out, int kBytes, int vBytes, size_t data_size, int thread_id)
+{
+    int GPU_number = thread_id % 4;
+
+    // cout << "transfer:threadID:" << thread_id << ",data size:" << "," << data_size << endl;
+
+    thrust::host_vector<unsigned long long> h_vec_key(data_size);
+    thrust::host_vector<long> h_vec_value(data_size);
+
+    for(int i=0; i < data_size; i++)
+    {
+	h_vec_key[i] = key[i];
+	h_vec_value[i] = value[i];
+    }
+
+    cudaSetDevice(GPU_number);
+    
+    thrust::device_vector<unsigned long long> d_vec_key(data_size);
+    thrust::device_vector<long> d_vec_value(data_size);
+
+    thrust::copy(h_vec_key.begin(), h_vec_key.end(), d_vec_key.begin());
+    thrust::copy(h_vec_value.begin(), h_vec_value.end(), d_vec_value.begin());
+    
+    thrust::sort_by_key(d_vec_key.begin(), d_vec_key.end(), d_vec_value.begin());
+
+    thrust::host_vector<unsigned long long> h_vec_key_2(data_size);
+    thrust::host_vector<long> h_vec_value_2(data_size);
+
+    thrust::copy(d_vec_value.begin(),d_vec_value.end(),h_vec_value_2.begin());
+    thrust::copy(d_vec_key.begin(),d_vec_key.end(),h_vec_key_2.begin());
+
+    for(int i = 0; i < 3; i++)
+    {
+	cout << "[sort result] threadID:" << thread_id << ":" << h_vec_key_2[i] << ","
+	     << h_vec_value_2[i] << endl;
+    }
+    
+    for(int i = 0; i < data_size; i++)
+    {
+    	key_out[i] =  h_vec_key_2[i];
+	value_out[i] =  h_vec_value_2[i];
+    }
+}
+
 void transfer(unsigned long long *key, long *value, unsigned long long *key_out, long *value_out, int kBytes, int vBytes, size_t data_size, int *new_size, int thread_id)
 {
-    // unsigned long long *d_A;
-    // long *d_B;
     unsigned int t, travdirtime;
-
-    int GPU_number = 0;
+    int GPU_number = thread_id % 4;
 
     cout << "transfer:threadID:" << thread_id << ",data size:" << "," << data_size << endl;
 
@@ -41,35 +82,15 @@ void transfer(unsigned long long *key, long *value, unsigned long long *key_out,
     {
 	h_vec_key[i] = key[i];
 	h_vec_value[i] = value[i];
-
-	// cout << "transfer:threadID:" << thread_id << "," << key[i] << "," << value[i] << endl;
-	// cout << "transfer:threadID:" << thread_id << "," << h_vec_key[i] << "," << h_vec_value[i] << endl;
-
-	/*
-	if(i < 3)
-	     {
-	     cout << "transfer:threadID:" << thread_id << "," << key[i] << "," << value[i] << endl;
-	     cout << "transfer:threadID:" << thread_id << "," << h_vec_key[i] << "," << h_vec_value[i] << endl;
-	     }
-	*/
     }
 
     // thrust::sort_by_key(h_vec_key.begin(), h_vec_key.end(), h_vec_value.begin());
 
-    for(int i=0; i < 3; i++)
-    {
-	cout << h_vec_key[i] << "," << h_vec_value[i] << endl;
-    }
-
     start_timer(&t);
-
-    GPU_number = thread_id - 1;
     cudaSetDevice(GPU_number);
     
     thrust::device_vector<unsigned long long> d_vec_key(data_size);
     thrust::device_vector<long> d_vec_value(data_size);
-
-    // thrust::sort_by_key(h_vec_key.begin(), h_vec_key.end(), h_vec_value.begin());
 
     thrust::copy(h_vec_key.begin(), h_vec_key.end(), d_vec_key.begin());
     thrust::copy(h_vec_value.begin(), h_vec_value.end(), d_vec_value.begin());
@@ -82,7 +103,6 @@ void transfer(unsigned long long *key, long *value, unsigned long long *key_out,
     start_timer(&t);
 
     thrust::sort_by_key(d_vec_key.begin(), d_vec_key.end(), d_vec_value.begin());
-
     thrust::device_vector<unsigned long long> d_vec_key_out(data_size);
     thrust::device_vector<long> d_vec_value_out(data_size);
 
@@ -96,6 +116,7 @@ void transfer(unsigned long long *key, long *value, unsigned long long *key_out,
     print_timer(travdirtime);
 
     start_timer(&t);
+
     thrust::host_vector<unsigned long long> h_vec_key_2(data_size);
     thrust::host_vector<long> h_vec_value_2(data_size);
 
@@ -107,7 +128,7 @@ void transfer(unsigned long long *key, long *value, unsigned long long *key_out,
 	cout << "[reduction result] threadID:" << thread_id << ":" << h_vec_key_2[i] << ","
 	     << h_vec_value_2[i] << endl;
     }
-
+    
     for(int i = 0; i < new_size_r; i++)
     {
     	key_out[i] =  h_vec_key_2[i];
@@ -120,7 +141,6 @@ void transfer(unsigned long long *key, long *value, unsigned long long *key_out,
     print_timer(travdirtime);
 
     (*new_size) = new_size_r;
-
 }
 
 void kernel(long *h_key, long *h_value_1, long *h_value_2, string filename, int size)
