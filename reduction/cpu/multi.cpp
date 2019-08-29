@@ -34,17 +34,21 @@
 #include "csv.hpp"
 #include "timer.h"
 
+#include <boost/date_time/posix_time/posix_time.hpp>
+
 using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 88
-#define MAX_QUEUE_NUM 128
+#define WORKER_THREAD_NUM 24
+#define MAX_QUEUE_NUM 48
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
 
 typedef tbb::concurrent_hash_map<unsigned long long, long> iTbb_Vec_timestamp;
 static iTbb_Vec_timestamp TbbVec_timestamp; 
+
+static int global_counter = 0;
 
 extern void kernel(long* h_key, long* h_value_1, long* h_value_2, int size);
 
@@ -96,6 +100,27 @@ std::vector<std::string> split_string_2(std::string str, char del) {
   return result;
 }
 
+std::string now_str()
+{
+  // Get current time from the clock, using microseconds resolution
+  const boost::posix_time::ptime now =
+    boost::posix_time::microsec_clock::local_time();
+
+  const boost::posix_time::time_duration td = now.time_of_day();
+
+  const long hours        = td.hours();
+  const long minutes      = td.minutes();
+  const long seconds      = td.seconds();
+  const long milliseconds = td.total_milliseconds() -
+    ((hours * 3600 + minutes * 60 + seconds) * 1000);
+
+  char buf[40];
+  sprintf(buf, "%02ld:%02ld:%02ld.%03ld",
+	  hours, minutes, seconds, milliseconds);
+
+  return buf;
+}
+
 int traverse_file(char* filename, int thread_id) {
     char buf[1024];
     int n = 0, sumn = 0;
@@ -103,9 +128,13 @@ int traverse_file(char* filename, int thread_id) {
     unsigned int t, travdirtime;
     
     std::string s1 = "-read";
-    
-    printf("%s \n", filename);
 
+    global_counter++;
+    
+    // printf("threadID:%d:%d:%s \n", thread_id, global_counter, filename);
+    std::cout << "threadID:" << thread_id << ":" << global_counter << ": [" << now_str()
+	      << "] :" << filename << std::endl;
+    
     const string csv_file = std::string(filename); 
     vector<vector<string>> data; 
 

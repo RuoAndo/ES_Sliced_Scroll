@@ -26,7 +26,7 @@ using namespace std;
 
 void sort(unsigned long long *key, long *value, unsigned long long *key_out, long *value_out, int kBytes, int vBytes, size_t data_size, int thread_id)
 {
-    int GPU_number = thread_id % 4;
+    int GPU_number = thread_id % 3;
 
     // cout << "transfer:threadID:" << thread_id << ",data size:" << "," << data_size << endl;
 
@@ -55,11 +55,13 @@ void sort(unsigned long long *key, long *value, unsigned long long *key_out, lon
     thrust::copy(d_vec_value.begin(),d_vec_value.end(),h_vec_value_2.begin());
     thrust::copy(d_vec_key.begin(),d_vec_key.end(),h_vec_key_2.begin());
 
+    /*
     for(int i = 0; i < 3; i++)
     {
 	cout << "[sort result] threadID:" << thread_id << ":" << h_vec_key_2[i] << ","
 	     << h_vec_value_2[i] << endl;
     }
+    */
     
     for(int i = 0; i < data_size; i++)
     {
@@ -71,9 +73,9 @@ void sort(unsigned long long *key, long *value, unsigned long long *key_out, lon
 void transfer(unsigned long long *key, long *value, unsigned long long *key_out, long *value_out, int kBytes, int vBytes, size_t data_size, int *new_size, int thread_id)
 {
     unsigned int t, travdirtime;
-    int GPU_number = thread_id % 4;
+    int GPU_number = thread_id % 3;
 
-    cout << "transfer:threadID:" << thread_id << ",data size:" << "," << data_size << endl;
+    // cout << "transfer:threadID:" << thread_id << ",data size:" << "," << data_size << endl;
 
     thrust::host_vector<unsigned long long> h_vec_key(data_size);
     thrust::host_vector<long> h_vec_value(data_size);
@@ -95,7 +97,7 @@ void transfer(unsigned long long *key, long *value, unsigned long long *key_out,
     thrust::copy(h_vec_key.begin(), h_vec_key.end(), d_vec_key.begin());
     thrust::copy(h_vec_value.begin(), h_vec_value.end(), d_vec_value.begin());
     
-    cout << "thread:" << thread_id << " - transfer done." << endl;
+    // cout << "thread:" << thread_id << " - transfer done." << endl;
     travdirtime = stop_timer(&t);
     print_timer(travdirtime);
 
@@ -123,11 +125,13 @@ void transfer(unsigned long long *key, long *value, unsigned long long *key_out,
     thrust::copy(d_vec_value_out.begin(),d_vec_value_out.end(),h_vec_value_2.begin());
     thrust::copy(d_vec_key_out.begin(),d_vec_key_out.end(),h_vec_key_2.begin());
 
+    /*
     for(int i = 0; i < 3; i++)
     {
 	cout << "[reduction result] threadID:" << thread_id << ":" << h_vec_key_2[i] << ","
 	     << h_vec_value_2[i] << endl;
     }
+    */
     
     for(int i = 0; i < new_size_r; i++)
     {
