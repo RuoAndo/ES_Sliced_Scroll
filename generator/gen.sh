@@ -1,6 +1,6 @@
 if [ "$1" = "" ]
 then
-    echo "usage: ./test nLines nFiles"
+    echo "usage: ./10 nLines nFiles"
     exit 1
 fi
 
