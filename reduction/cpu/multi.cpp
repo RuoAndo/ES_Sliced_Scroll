@@ -40,8 +40,8 @@ using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 24
-#define MAX_QUEUE_NUM 48
+#define WORKER_THREAD_NUM 8
+#define MAX_QUEUE_NUM 24
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
 
@@ -132,8 +132,10 @@ int traverse_file(char* filename, int thread_id) {
     global_counter++;
     
     // printf("threadID:%d:%d:%s \n", thread_id, global_counter, filename);
-    std::cout << "threadID:" << thread_id << ":" << global_counter << ": [" << now_str()
-	      << "] :" << filename << std::endl;
+    std::cout << "threadID:" << thread_id << ",fileNo:" << global_counter << ", [" << now_str()
+	      << "] ," << filename << std::endl;
+
+    std::cout << "[log]" << now_str() << "," << global_counter << endl;
     
     const string csv_file = std::string(filename); 
     vector<vector<string>> data; 
