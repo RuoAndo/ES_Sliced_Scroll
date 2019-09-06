@@ -40,8 +40,8 @@ using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 24
-#define MAX_QUEUE_NUM 48
+#define WORKER_THREAD_NUM 16
+#define MAX_QUEUE_NUM 32
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
 
@@ -132,6 +132,13 @@ int traverse_file(char* filename, int thread_id) {
     int n = 0, sumn = 0;
     int i;
     unsigned int t, travdirtime;
+
+    cpu_set_t cpu_set;
+    int result;
+    
+    CPU_ZERO(&cpu_set);
+    CPU_SET(2, &cpu_set);
+    result = sched_setaffinity(thread_id, sizeof(cpu_set_t), &cpu_set);
     
     std::string s1 = "-read";
 
