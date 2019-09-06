@@ -135,7 +135,7 @@ int traverse_file(char* filename, int thread_id) {
     std::cout << "threadID:" << thread_id << ",fileNo:" << global_counter << ", [" << now_str()
 	      << "] ," << filename << std::endl;
 
-    std::cout << "[log]" << now_str() << "," << global_counter << endl;
+    std::cout << "[log]," << now_str() << "," << global_counter << endl;
     
     const string csv_file = std::string(filename); 
     vector<vector<string>> data; 
