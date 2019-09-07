@@ -22,6 +22,7 @@
 #include <sys/time.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>   
+#include <sys/resource.h>
 
 #include "tbb/concurrent_hash_map.h"
 #include "tbb/blocked_range.h"
@@ -40,8 +41,8 @@ using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 4
-#define MAX_QUEUE_NUM 32
+#define WORKER_THREAD_NUM 9
+#define MAX_QUEUE_NUM 27
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
 
@@ -132,6 +133,22 @@ std::string now_str()
   return buf;
 }
 
+std::vector<size_t> get_cpu_times() {
+  std::ifstream proc_stat("/proc/stat");
+  proc_stat.ignore(5, ' '); // Skip the 'cpu' prefix.
+  std::vector<size_t> times;
+  for (size_t time; proc_stat >> time; times.push_back(time));
+  return times;
+}
+
+bool get_cpu_times(size_t &idle_time, size_t &total_time) {
+  const std::vector<size_t> cpu_times = get_cpu_times();
+  if (cpu_times.size() < 4)
+    return false;
+  idle_time = cpu_times[3];
+  total_time = std::accumulate(cpu_times.begin(), cpu_times.end(), 0);
+  return true;
+}
 
 int traverse_file(char* filename, int thread_id) {
     char buf[1024];
@@ -152,14 +169,11 @@ int traverse_file(char* filename, int thread_id) {
 
     std::string s1 = "-read";
 
-    global_counter++;
+    size_t previous_idle_time=0, previous_total_time=0;
+    size_t idle_time=0, total_time=0;
 
-    gettimeofday(&tv, NULL);
-    printf("%ld %06lu\n", tv.tv_sec, tv.tv_usec);
-    
     std::cout << "threadID:" << thread_id << ":" << global_counter << ": [" << now_str()
 	      << "] :" << filename << std::endl;
-    std::cout << "[log]," << tv.tv_sec << "," << global_counter << std::endl;
     
     const string csv_file = std::string(filename); 
     vector<vector<string>> data; 
@@ -230,6 +244,22 @@ int traverse_file(char* filename, int thread_id) {
 	TbbVec_timestamp.insert(tms, key_out[i]);
 	tms->second += value_out[i];
       }
+
+    get_cpu_times(idle_time, total_time);
+    const float idle_time_delta = idle_time - previous_idle_time;
+    const float total_time_delta = total_time - previous_total_time;
+    const float utilization = 100.0 * (1.0 - idle_time_delta / total_time_delta);
+
+    struct rusage r;
+    getrusage(RUSAGE_SELF, &r);
+    
+    gettimeofday(&tv, NULL);
+    printf("%ld %06lu\n", tv.tv_sec, tv.tv_usec);
+    
+    std::cout << "[log]," << tv.tv_sec << "," << global_counter << "," << utilization << "," << r.ru_maxrss << std::endl;
+
+    global_counter++;
+    
 }
 
 void initqueue(queue_t* q) {
@@ -436,10 +466,12 @@ int main(int argc, char* argv[]) {
     }
     */
 
+    /*
     isCapableP2P(4);
     enableP2P(4);
     allocateCUDAmemory(4);
-    
+    */    
+
     cpu_num = sysconf(_SC_NPROCESSORS_CONF);
 
     initqueue(&q);
@@ -531,8 +563,10 @@ int main(int argc, char* argv[]) {
     outputfile.close();
     */
 
+    /*
     disableP2P(4);
     freeCUDAmemory(4);
-    
+    */    
+
     return 0;
 }
