@@ -126,6 +126,7 @@ int traverse_file(char* filename, int thread_id) {
     int n = 0, sumn = 0;
     int i;
     unsigned int t, travdirtime;
+    struct timeval tv;
     
     std::string s1 = "-read";
 
@@ -135,7 +136,10 @@ int traverse_file(char* filename, int thread_id) {
     std::cout << "threadID:" << thread_id << ",fileNo:" << global_counter << ", [" << now_str()
 	      << "] ," << filename << std::endl;
 
-    std::cout << "[log]," << now_str() << "," << global_counter << endl;
+    gettimeofday(&tv, NULL);
+
+    // printf("%ld %06lu\n", tv.tv_sec, tv.tv_usec);
+    std::cout << "[log]," << tv.tv_sec << "," << global_counter << endl;
     
     const string csv_file = std::string(filename); 
     vector<vector<string>> data; 
