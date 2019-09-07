@@ -40,7 +40,7 @@ using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 8
+#define WORKER_THREAD_NUM 4
 #define MAX_QUEUE_NUM 32
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
@@ -49,6 +49,12 @@ using namespace tbb;
 extern void transfer(unsigned long long *key, long *value, unsigned long long *key_out, long *value_out, int kBytes, int vBytes, size_t data_size, int* new_size, int thread_id);
 
 extern void sort(unsigned long long *key, long *value, unsigned long long *key_out, long *value_out, int kBytes, int vBytes, size_t data_size, int thread_id);
+
+extern bool isCapableP2P(int ngpus);
+extern void enableP2P(int ngpus);
+extern void disableP2P(int ngpus);
+extern void allocateCUDAmemory(int ngpus);
+extern void freeCUDAmemory(int ngpus);
 
 typedef tbb::concurrent_hash_map<long, int> iTbb_Vec_timestamp;
 static iTbb_Vec_timestamp TbbVec_timestamp; 
@@ -429,6 +435,10 @@ int main(int argc, char* argv[]) {
         printf("Usage: search_strings PATTERN [DIR]\n"); return 0;
     }
     */
+
+    isCapableP2P(4);
+    enableP2P(4);
+    allocateCUDAmemory(4);
     
     cpu_num = sysconf(_SC_NPROCESSORS_CONF);
 
@@ -521,5 +531,8 @@ int main(int argc, char* argv[]) {
     outputfile.close();
     */
 
+    disableP2P(4);
+    freeCUDAmemory(4);
+    
     return 0;
 }
