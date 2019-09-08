@@ -41,8 +41,8 @@ using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 9
-#define MAX_QUEUE_NUM 27
+#define WORKER_THREAD_NUM 25
+#define MAX_QUEUE_NUM 32
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
 
@@ -147,6 +147,8 @@ int traverse_file(char* filename, int thread_id) {
     struct timeval tv;
     
     std::string s1 = "-read";
+
+    clock_t start = clock();
     
     // printf("threadID:%d:%d:%s \n", thread_id, global_counter, filename);
     std::cout << "threadID:" << thread_id << ",fileNo:" << global_counter << ", [" << now_str()
@@ -211,9 +213,16 @@ int traverse_file(char* filename, int thread_id) {
 	// key[row] = stoull(tms);
 	// value[row] = 1;
 
+	std::string bytes = rec[20];
+
+	for(size_t c = bytes.find_first_of("\""); c != string::npos; c = c = bytes.find_first_of("\"")){
+	  bytes.erase(c,1);
+	}         
+	
 	iTbb_Vec_timestamp::accessor t;
 	TbbVec_timestamp.insert(t, stoull(tms));
 	t->second += 1;
+	t->second += stol(bytes);
 	// tms->second += 1;
       }
 
@@ -224,9 +233,12 @@ int traverse_file(char* filename, int thread_id) {
    const float total_time_delta = total_time - previous_total_time;
    const float utilization = 100.0 * (1.0 - idle_time_delta / total_time_delta);
 
-   struct rusage r;                                                                                                                                                       getrusage(RUSAGE_SELF, &r); 
+   struct rusage r;                                                                                                                                    getrusage(RUSAGE_SELF, &r); 
+
+   clock_t end = clock();
+   const double time = static_cast<double>(end - start) / CLOCKS_PER_SEC * 1000.0;
    
-   std::cout << "[log]," << tv.tv_sec << "," << global_counter << "," << utilization << "," << r.ru_maxrss << endl;
+   std::cout << "[log]," << tv.tv_sec << "," << global_counter << "," << utilization << "," << r.ru_maxrss << "," << time << endl;
    global_counter++;    
 }
 
