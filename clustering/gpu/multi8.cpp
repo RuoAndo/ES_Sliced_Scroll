@@ -41,13 +41,13 @@ using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 9
-#define MAX_QUEUE_NUM 27
+#define WORKER_THREAD_NUM 5
+#define MAX_QUEUE_NUM 8
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
 
 // extern void kernel(long* h_key, long* h_value_1, long* h_value_2, string filename, int size);
-extern void transfer(unsigned long long *key, long *value, unsigned long long *key_out, long *value_out, int kBytes, int vBytes, size_t data_size, int* new_size, int thread_id);
+extern void transfer(unsigned long long *key_1, float *value_1, unsigned long long *key_2, float *value_2, unsigned long long *key_out, float *value_out, int kBytes, int vBytes, size_t data_size, int* new_size, int thread_id);
 
 extern void sort(unsigned long long *key, long *value, unsigned long long *key_out, long *value_out, int kBytes, int vBytes, size_t data_size, int thread_id);
 
@@ -184,19 +184,27 @@ int traverse_file(char* filename, int thread_id) {
        return 1;
     }
 
-    size_t kBytes = data.size() * sizeof(unsigned long long);
-    unsigned long long *key;
-    key = (unsigned long long *)malloc(kBytes);
+    size_t kBytes_1 = data.size() * sizeof(unsigned long long);
+    unsigned long long *key_1;
+    key_1 = (unsigned long long *)malloc(kBytes_1);
 
-    size_t vBytes = data.size() * sizeof(long);
-    long *value;
-    value = (long *)malloc(vBytes);
+    size_t vBytes_1 = data.size() * sizeof(float);
+    float *value_1;
+    value_1 = (float *)malloc(vBytes_1);
 
-    unsigned long long *key_out;
-    key_out = (unsigned long long *)malloc(kBytes);
+    size_t kBytes_2 = data.size() * sizeof(unsigned long long);
+    unsigned long long *key_2;
+    key_2 = (unsigned long long *)malloc(kBytes_2);
+
+    size_t vBytes_2 = data.size() * sizeof(float);
+    float *value_2;
+    value_2 = (float *)malloc(vBytes_2);
     
-    long *value_out;
-    value_out = (long *)malloc(vBytes);
+    unsigned long long *key_out;
+    key_out = (unsigned long long *)malloc(kBytes_2);
+    
+    float *value_out;
+    value_out = (float *)malloc(vBytes_2);
 
     int new_size = 0;
     
@@ -236,17 +244,16 @@ int traverse_file(char* filename, int thread_id) {
     	      bytes.erase(c,1);
 	}
 	
-	key[row] = stoull(tms);
-	value[row] = stol(bytes);
+	key_1[row] = stoull(tms);
+	value_1[row] = 1;
+
+	key_2[row] = stoull(tms);
+	value_2[row] = stof(bytes);
     }
 
-    //cout << "thread:" << thread_id << ":" << data.size() << " lines - read done." << endl;
-    // travdirtime = stop_timer(&t);
-    // print_timer(travdirtime);
-    //cout << endl;
+    transfer(key_1, value_1, key_2, value_2, key_out, value_out, kBytes_2, vBytes_2, data.size(), &new_size, thread_id);
 
-    transfer(key, value, key_out, value_out, kBytes, vBytes, data.size(), &new_size, thread_id);
-
+    /*
     start_timer(&t);    
     for(int i = 0; i < new_size; i++)
       {
@@ -266,15 +273,12 @@ int traverse_file(char* filename, int thread_id) {
     getrusage(RUSAGE_SELF, &r);
     
     gettimeofday(&tv, NULL);
-    // printf("%ld %06lu\n", tv.tv_sec, tv.tv_usec);
-
     clock_t end = clock();
     const double time = static_cast<double>(end - start) / CLOCKS_PER_SEC * 1000.0;
-    
     std::cout << "[log]," << tv.tv_sec << "," << global_counter << "," << utilization << "," << r.ru_maxrss << "," << time << std::endl;
 
     global_counter++;
-    
+    */ 
 }
 
 void initqueue(queue_t* q) {
