@@ -60,6 +60,12 @@ typedef struct _result {
 } result_t;
 result_t result;
 
+typedef struct _reduction {
+    std::map<unsigned long long, long> m;
+    pthread_mutex_t mutex;    
+} reduction_t;
+reduction_t reduction;
+
 typedef struct _queue {
     char* fname[MAX_QUEUE_NUM];
     int flength[MAX_QUEUE_NUM];
@@ -218,12 +224,39 @@ int traverse_file(char* filename, int thread_id) {
 	for(size_t c = bytes.find_first_of("\""); c != string::npos; c = c = bytes.find_first_of("\"")){
 	  bytes.erase(c,1);
 	}         
-	
+
+	/*
 	iTbb_Vec_timestamp::accessor t;
 	TbbVec_timestamp.insert(t, stoull(tms));
 	t->second += 1;
 	t->second += stol(bytes);
-	// tms->second += 1;
+	*/
+
+	unsigned long long stl_tms = stoull(tms);
+	long stl_value = stol(bytes);
+
+	pthread_mutex_lock(&reduction.mutex);
+
+	if(reduction.m.empty() == 1)
+	  reduction.m.insert(std::make_pair(stl_tms, stl_value));
+	
+	for( auto i = reduction.m.begin(); i != reduction.m.end() ; ++i ) {
+	  // std::cout << i->first << " " << i->second << "\n";
+
+	  if((unsigned long long)i->first == stl_tms)
+	    {
+	      long tmp_value = reduction.m[stl_tms] + stl_value;
+	      reduction.m[stl_tms] += stl_value;
+	      // cout << "merge:" << thread_id << ":" << stl_tms << "," << stl_value << endl;
+	    }
+	  else
+	    {
+	      reduction.m.insert(std::make_pair(stl_tms, stl_value));
+	    }
+	}
+	
+	pthread_mutex_unlock(&reduction.mutex);
+
       }
 
    size_t previous_idle_time=0, previous_total_time=0;
@@ -233,7 +266,8 @@ int traverse_file(char* filename, int thread_id) {
    const float total_time_delta = total_time - previous_total_time;
    const float utilization = 100.0 * (1.0 - idle_time_delta / total_time_delta);
 
-   struct rusage r;                                                                                                                                    getrusage(RUSAGE_SELF, &r); 
+   struct rusage r;
+   getrusage(RUSAGE_SELF, &r); 
 
    clock_t end = clock();
    const double time = static_cast<double>(end - start) / CLOCKS_PER_SEC * 1000.0;
@@ -466,6 +500,7 @@ int main(int argc, char* argv[]) {
     */    
 
     pthread_mutex_init(&result.mutex, NULL);
+    pthread_mutex_init(&reduction.mutex, NULL);
 
     pthread_create(&master, NULL, (void*)master_func, (void*)&targ[0]);
     for (i = 1; i < thread_num; ++i) {
@@ -477,14 +512,28 @@ int main(int argc, char* argv[]) {
         pthread_join(worker[i], NULL);
 
     print_result(&targ[0]);
-    
+
+    /*
     std::map<unsigned long long, long> final;
     
     for(auto itr = TbbVec_timestamp.begin(); itr != TbbVec_timestamp.end(); ++itr) {
       final.insert(std::make_pair((unsigned long long)(itr->first), long(itr->second)));
     }
+    */
     
     ofstream outputfile("tmp-counts");
+
+    for(auto itr = reduction.m.begin(); itr != reduction.m.end(); ++itr) {
+
+      std::string timestamp = to_string(itr->first);
+
+      outputfile << timestamp.substr(0,4) << "-" << timestamp.substr(4,2) << "-" << timestamp.substr(6,2) << " "
+		 << timestamp.substr(8,2) << ":" << timestamp.substr(10,2) << ":" << timestamp.substr(12,2)
+		 << "." << timestamp.substr(14,3) << ","
+		 << itr->second << endl; 
+    }
+    
+    /*
     for(auto itr = final.begin(); itr != final.end(); ++itr) {
 
       std::string timestamp = to_string(itr->first);
@@ -494,6 +543,8 @@ int main(int argc, char* argv[]) {
 		 << "." << timestamp.substr(14,3) << ","
 		 << itr->second << endl; 
     }
+    */
+    
     outputfile.close();
     
     return 0;
