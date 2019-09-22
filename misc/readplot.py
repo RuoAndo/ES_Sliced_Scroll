@@ -11,6 +11,12 @@ argvs = sys.argv
 
 if __name__ == "__main__":
 
+    argc = len(argvs) 
+    
+    if (argc != 4):  
+        print 'Usage:'
+        quit() 
+    
     #ax.get_xaxis().get_major_formatter().set_useOffset(False)
     #ax.get_xaxis().set_major_locator(ticker.MaxNLocator(integer=True))
 
@@ -33,8 +39,18 @@ if __name__ == "__main__":
     #ax.plot(data[:,1])
     #ax.plot(data2[:,1])
 
-    ax.plot(data[:,1])
-    ax.plot(data2[:,1])
+    plt.title("Graph Title")
+    plt.xlabel("# of data (randomly generated)")
+    plt.ylabel("elapsed time")
+    
+    #ax.plot(data[:,1],)
+    #ax.plot(data2[:,1])
+
+    ax.plot(data[:,1], label = "TBB")
+    ax.plot(data2[:,1], label= "CUDA")
+    plt.legend()
+    
+    plt.title(argvs[3])
     plt.show()  
     
     #plt.subplot(2, 1, 1)
