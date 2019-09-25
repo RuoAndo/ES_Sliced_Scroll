@@ -26,9 +26,9 @@ using namespace std;
 
 void sort(unsigned long long *key, long *value, unsigned long long *key_out, long *value_out, int kBytes, int vBytes, size_t data_size, int thread_id)
 {
-    int GPU_number = thread_id % 3;
-
-    // cout << "transfer:threadID:" << thread_id << ",data size:" << "," << data_size << endl;
+    int GPU_number = thread_id % 1;
+    // struct timespec startTime, endTime, sleepTime;
+    cudaSetDevice(GPU_number);
 
     thrust::host_vector<unsigned long long> h_vec_key(data_size);
     thrust::host_vector<long> h_vec_value(data_size);
@@ -38,8 +38,6 @@ void sort(unsigned long long *key, long *value, unsigned long long *key_out, lon
 	h_vec_key[i] = key[i];
 	h_vec_value[i] = value[i];
     }
-
-    cudaSetDevice(GPU_number);
     
     thrust::device_vector<unsigned long long> d_vec_key(data_size);
     thrust::device_vector<long> d_vec_value(data_size);
@@ -54,14 +52,6 @@ void sort(unsigned long long *key, long *value, unsigned long long *key_out, lon
 
     thrust::copy(d_vec_value.begin(),d_vec_value.end(),h_vec_value_2.begin());
     thrust::copy(d_vec_key.begin(),d_vec_key.end(),h_vec_key_2.begin());
-
-    /*
-    for(int i = 0; i < 3; i++)
-    {
-	cout << "[sort result] threadID:" << thread_id << ":" << h_vec_key_2[i] << ","
-	     << h_vec_value_2[i] << endl;
-    }
-    */
     
     for(int i = 0; i < data_size; i++)
     {
@@ -72,10 +62,15 @@ void sort(unsigned long long *key, long *value, unsigned long long *key_out, lon
 
 void transfer(unsigned long long *key, long *value, unsigned long long *key_out, long *value_out, int kBytes, int vBytes, size_t data_size, int *new_size, int thread_id)
 {
-    unsigned int t, travdirtime;
-    int GPU_number = thread_id % 3;
+    int GPU_number = thread_id % 4;
+    // int GPU_number = 0;
+    cudaSetDevice(GPU_number);
 
-    // cout << "transfer:threadID:" << thread_id << ",data size:" << "," << data_size << endl;
+    struct timespec startTime, endTime, sleepTime;
+    // struct timespec startTime, endTime;
+    clock_gettime(CLOCK_REALTIME, &startTime);
+    sleepTime.tv_sec = 0;
+    sleepTime.tv_nsec = 123;
 
     thrust::host_vector<unsigned long long> h_vec_key(data_size);
     thrust::host_vector<long> h_vec_value(data_size);
@@ -86,38 +81,54 @@ void transfer(unsigned long long *key, long *value, unsigned long long *key_out,
 	h_vec_value[i] = value[i];
     }
 
-    // thrust::sort_by_key(h_vec_key.begin(), h_vec_key.end(), h_vec_value.begin());
-
-    start_timer(&t);
-    cudaSetDevice(GPU_number);
-    
     thrust::device_vector<unsigned long long> d_vec_key(data_size);
     thrust::device_vector<long> d_vec_value(data_size);
-
     thrust::copy(h_vec_key.begin(), h_vec_key.end(), d_vec_key.begin());
     thrust::copy(h_vec_value.begin(), h_vec_value.end(), d_vec_value.begin());
-    
-    // cout << "thread:" << thread_id << " - transfer done." << endl;
-    travdirtime = stop_timer(&t);
-    print_timer(travdirtime);
 
-    /* reduction */
-    start_timer(&t);
+    /*
+    cudaStream_t stream;
+    cudaStreamCreate(&stream);
+    thrust::copy(thrust::cuda::par.on(stream), h_vec_key.begin(), h_vec_key.end(), d_vec_key.begin());
+    thrust::copy(thrust::cuda::par.on(stream), h_vec_value.begin(), h_vec_value.end(), d_vec_value.begin());
+    */
+
+    clock_gettime(CLOCK_REALTIME, &endTime);
+    if (endTime.tv_nsec < startTime.tv_nsec) {
+            printf("[kernel][memory transfer] GPU[%d]:threadID%d - %ld.%ld", GPU_number, thread_id,
+	    			    	      			   endTime.tv_sec - startTime.tv_sec - 1 ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
+    } else {
+      	    printf("[kernel][memory transfer] GPU[%d]:threadID%d - %ld.%09ld ", GPU_number, thread_id,
+	    			    	      			   	     	endTime.tv_sec - startTime.tv_sec ,endTime.tv_nsec - startTime.tv_nsec);
+	    // printf("%10ld.%09ld", endTime.tv_sec - startTime.tv_sec ,endTime.tv_nsec - startTime.tv_nsec);
+    }
+    printf(" sec \n");
+
+    clock_gettime(CLOCK_REALTIME, &startTime);
+    sleepTime.tv_sec = 0;
+    sleepTime.tv_nsec = 123;
 
     thrust::sort_by_key(d_vec_key.begin(), d_vec_key.end(), d_vec_value.begin());
     thrust::device_vector<unsigned long long> d_vec_key_out(data_size);
     thrust::device_vector<long> d_vec_value_out(data_size);
 
-    auto new_end = thrust::reduce_by_key(d_vec_key.begin(), d_vec_key.end(), d_vec_value.begin(),
-       	       	 		       d_vec_key_out.begin(), d_vec_value_out.begin());
-
+    auto new_end = thrust::reduce_by_key(d_vec_key.begin(), d_vec_key.end(), d_vec_value.begin(), d_vec_key_out.begin(), d_vec_value_out.begin());
     int new_size_r = new_end.first - d_vec_key_out.begin();
 
-    cout << "thread:" << thread_id << " - reduction done." << endl;
-    travdirtime = stop_timer(&t);
-    print_timer(travdirtime);
+    // thrust::sort_by_key(key, key + data_size, value);
+    // auto new_end = thrust::reduce_by_key(key, key + data_size, value, key_out, value_out);
 
-    start_timer(&t);
+    clock_gettime(CLOCK_REALTIME, &endTime);
+    if (endTime.tv_nsec < startTime.tv_nsec) {
+            printf("[kernel][reduction] GPU[%d]:threadID%d - %ld.%09ld", GPU_number, thread_id,
+	    						     		 endTime.tv_sec - startTime.tv_sec - 1 ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
+    } else {
+      	    printf("[kernel][reduction] GPU[%d]:threadID%d - %ld.%09ld ", GPU_number, thread_id,
+	    			    	      			         endTime.tv_sec - startTime.tv_sec ,endTime.tv_nsec - startTime.tv_nsec);
+	    					    		 
+	    // printf("%10ld.%09ld", endTime.tv_sec - startTime.tv_sec ,endTime.tv_nsec - startTime.tv_nsec);
+    }
+    printf(" sec \n");
 
     thrust::host_vector<unsigned long long> h_vec_key_2(data_size);
     thrust::host_vector<long> h_vec_value_2(data_size);
@@ -125,26 +136,31 @@ void transfer(unsigned long long *key, long *value, unsigned long long *key_out,
     thrust::copy(d_vec_value_out.begin(),d_vec_value_out.end(),h_vec_value_2.begin());
     thrust::copy(d_vec_key_out.begin(),d_vec_key_out.end(),h_vec_key_2.begin());
 
-    /*
-    for(int i = 0; i < 3; i++)
-    {
-	cout << "[reduction result] threadID:" << thread_id << ":" << h_vec_key_2[i] << ","
-	     << h_vec_value_2[i] << endl;
-    }
-    */
-    
     for(int i = 0; i < new_size_r; i++)
     {
     	key_out[i] =  h_vec_key_2[i];
 	value_out[i] =  h_vec_value_2[i];
     }
 
-    cout << "thread:" << thread_id << " - transfer(rev) done with new_size " << new_size_r
-    	 << "(" << data_size << ")" << endl;
-    travdirtime = stop_timer(&t);
-    print_timer(travdirtime);
-
     (*new_size) = new_size_r;
+    // (*new_size) = sizeof(*new_end.first);
+
+    // printf("開始時刻　 = %10ld.%09ld\n", startTime.tv_sec, startTime.tv_nsec);
+    // printf("終了時刻　 = %10ld.%09ld\n", endTime.tv_sec, endTime.tv_nsec);
+    // printf("経過実時間 = ");
+
+    /*
+    clock_gettime(CLOCK_REALTIME, &endTime);
+    if (endTime.tv_nsec < startTime.tv_nsec) {
+            printf("%10ld.%09ld", endTime.tv_sec - startTime.tv_sec - 1 ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
+    } else {
+      	    printf("GPU%d:thread_id:%d - [kernel][reduction] %ld.%09ld", GPU_number, thread_id,
+	    			 endTime.tv_sec - startTime.tv_sec ,endTime.tv_nsec - startTime.tv_nsec);
+	    // printf("%10ld.%09ld", endTime.tv_sec - startTime.tv_sec ,endTime.tv_nsec - startTime.tv_nsec);
+    }
+    printf(" sec \n");
+    */
+
 }
 
 void kernel(long *h_key, long *h_value_1, long *h_value_2, string filename, int size)
