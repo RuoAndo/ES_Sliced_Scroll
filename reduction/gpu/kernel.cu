@@ -24,6 +24,14 @@
 
 using namespace std;
 
+string now() {
+    time_t t = time(0);
+        char buffer[9] = {0};
+
+    strftime(buffer, 9, "%H:%M:%S", localtime(&t));
+    return string(buffer);
+}
+
 void sort(unsigned long long *key, long *value, unsigned long long *key_out, long *value_out, int kBytes, int vBytes, size_t data_size, int thread_id)
 {
     int GPU_number = thread_id % 1;
@@ -72,6 +80,8 @@ void transfer(unsigned long long *key, long *value, unsigned long long *key_out,
     sleepTime.tv_sec = 0;
     sleepTime.tv_nsec = 123;
 
+    cout << "GPU" << GPU_number << ":thread_id" << thread_id << " - memory allocation start at: " << now() << endl;
+
     thrust::host_vector<unsigned long long> h_vec_key(data_size);
     thrust::host_vector<long> h_vec_value(data_size);
 
@@ -92,6 +102,8 @@ void transfer(unsigned long long *key, long *value, unsigned long long *key_out,
     thrust::copy(thrust::cuda::par.on(stream), h_vec_key.begin(), h_vec_key.end(), d_vec_key.begin());
     thrust::copy(thrust::cuda::par.on(stream), h_vec_value.begin(), h_vec_value.end(), d_vec_value.begin());
     */
+
+    cout << "GPU" << GPU_number << ":thread_id" << thread_id << " - memory allocation finished at: " << now() << endl;
 
     clock_gettime(CLOCK_REALTIME, &endTime);
     if (endTime.tv_nsec < startTime.tv_nsec) {
