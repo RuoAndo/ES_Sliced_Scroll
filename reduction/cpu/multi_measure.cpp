@@ -32,37 +32,25 @@
 #include "tbb/concurrent_vector.h"
 #include "utility.h"
 
-#include <boost/date_time/posix_time/posix_time.hpp>
-
 #include "csv.hpp"
 #include "timer.h"
+
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-// #define WORKER_THREAD_NUM 9
-#define WORKER_THREAD_NUM 5
-#define MAX_QUEUE_NUM 9
-// #define MAX_QUEUE_NUM 27
+#define WORKER_THREAD_NUM 9
+#define MAX_QUEUE_NUM 27
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
 
-// extern void kernel(long* h_key, long* h_value_1, long* h_value_2, string filename, int size);
-extern void transfer(unsigned long long *key, long *value, unsigned long long *key_out, long *value_out, int kBytes, int vBytes, size_t data_size, int* new_size, int thread_id);
-
-extern void sort(unsigned long long *key, long *value, unsigned long long *key_out, long *value_out, int kBytes, int vBytes, size_t data_size, int thread_id);
-
-extern bool isCapableP2P(int ngpus);
-extern void enableP2P(int ngpus);
-extern void disableP2P(int ngpus);
-extern void allocateCUDAmemory(int ngpus);
-extern void freeCUDAmemory(int ngpus);
-
-typedef tbb::concurrent_hash_map<long, int> iTbb_Vec_timestamp;
+typedef tbb::concurrent_hash_map<unsigned long long, long> iTbb_Vec_timestamp;
 static iTbb_Vec_timestamp TbbVec_timestamp; 
 
 static int global_counter = 0;
+static double global_duration = 0;
 
 extern void kernel(long* h_key, long* h_value_1, long* h_value_2, int size);
 
@@ -157,28 +145,24 @@ int traverse_file(char* filename, int thread_id) {
     int n = 0, sumn = 0;
     int i;
     unsigned int t, travdirtime;
-
     struct timeval tv;
+
     struct timespec startTime, endTime, sleepTime;
+    int counter = 0;
     
-    cpu_set_t cpu_set;
-    int result;
-
-    /*
-    CPU_ZERO(&cpu_set);
-    CPU_SET(2, &cpu_set);
-    result = sched_setaffinity(thread_id, sizeof(cpu_set_t), &cpu_set);
-    */
-
     std::string s1 = "-read";
-
-    size_t previous_idle_time=0, previous_total_time=0;
-    size_t idle_time=0, total_time=0;
 
     clock_t start = clock();
     
-    std::cout << "threadID:" << thread_id << ":" << global_counter << ": [" << now_str()
-	      << "] :" << filename << std::endl;
+    // printf("threadID:%d:%d:%s \n", thread_id, global_counter, filename);
+    /*
+    std::cout << "threadID:" << thread_id << ",fileNo:" << global_counter << ", [" << now_str()
+	      << "] ," << filename << std::endl;
+    */
+
+    gettimeofday(&tv, NULL);
+
+    // printf("%ld %06lu\n", tv.tv_sec, tv.tv_usec);
     
     const string csv_file = std::string(filename); 
     vector<vector<string>> data; 
@@ -205,6 +189,7 @@ int traverse_file(char* filename, int thread_id) {
 
     int new_size = 0;
     
+    start_timer(&t);    
     for (unsigned int row = 0; row < data.size(); row++)
       {
 	std::vector<string> rec = data[row];
@@ -231,66 +216,64 @@ int traverse_file(char* filename, int thread_id) {
 	      tms.erase(c,1);
 	}
 
-	/*
-	std::string substr = tms.substr(0, 13);
-	std::string tms_new = substr + "000";
-	*/    
-	std::string bytes = rec[1];
+	// key[row] = stoull(tms);
+	// value[row] = 1;
+
+	std::string bytes = rec[20];
 
 	for(size_t c = bytes.find_first_of("\""); c != string::npos; c = c = bytes.find_first_of("\"")){
-    	      bytes.erase(c,1);
+	  bytes.erase(c,1);
+	}         
+
+	clock_gettime(CLOCK_REALTIME, &startTime);
+	sleepTime.tv_sec = 0;
+	sleepTime.tv_nsec = 123;
+	
+	iTbb_Vec_timestamp::accessor t;
+	TbbVec_timestamp.insert(t, stoull(tms));
+	t->second += 1;
+	t->second += stol(bytes);
+
+	char str[100];
+	char *ends;
+	
+	clock_gettime(CLOCK_REALTIME, &endTime);
+
+	// printf("開始時刻　 = %10ld.%09ld\n", startTime.tv_sec, startTime.tv_nsec);
+	// printf("終了時刻　 = %10ld.%09ld\n", endTime.tv_sec, endTime.tv_nsec);
+	// printf("経過実時間 = ");
+	if (endTime.tv_nsec < startTime.tv_nsec) {
+	  sprintf(str, "%10ld.%09ld", endTime.tv_sec - startTime.tv_sec - 1 ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
+	} else {
+	  sprintf(str,"%10ld.%09ld", endTime.tv_sec - startTime.tv_sec ,endTime.tv_nsec - startTime.tv_nsec);
 	}
 	
-	key[row] = stoull(tms);
-	value[row] = stol(bytes);
-    }
+	// double tmp = atof(str);
+	double tmp = strtod( str, &ends );
+	// printf("%f\n",tmp);
+	
+	global_duration = global_duration + tmp;
 
-    transfer(key, value, key_out, value_out, kBytes, vBytes, data.size(), &new_size, thread_id);
-    travdirtime = stop_timer(&t);
-
-    clock_gettime(CLOCK_REALTIME, &startTime);
-    sleepTime.tv_sec = 0;
-    sleepTime.tv_nsec = 123;
-    
-    for(int i = 0; i < new_size; i++)
-      {
-	iTbb_Vec_timestamp::accessor tms;
-	TbbVec_timestamp.insert(tms, key_out[i]);
-	tms->second += value_out[i];
+	// counter++;
+	
+	// tms->second += 1;
+	global_counter++;    
       }
+   
+   size_t previous_idle_time=0, previous_total_time=0;
+   size_t idle_time=0, total_time=0;
+   get_cpu_times(idle_time, total_time); 
+   const float idle_time_delta = idle_time - previous_idle_time;
+   const float total_time_delta = total_time - previous_total_time;
+   const float utilization = 100.0 * (1.0 - idle_time_delta / total_time_delta);
 
-    printf("[hashmap insertion]");
-    clock_gettime(CLOCK_REALTIME, &endTime);
-    if (endTime.tv_nsec < startTime.tv_nsec) {
-      printf("%ld.%09ld", endTime.tv_sec - startTime.tv_sec - 1
-	     ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
-    } else {
-      printf("%ld.%09ld", endTime.tv_sec - startTime.tv_sec
-	     ,endTime.tv_nsec - startTime.tv_nsec);
-    }
-    printf(" sec \n");
-    
-    /*
-    get_cpu_times(idle_time, total_time);
-    const float idle_time_delta = idle_time - previous_idle_time;
-    const float total_time_delta = total_time - previous_total_time;
-    const float utilization = 100.0 * (1.0 - idle_time_delta / total_time_delta);
+   struct rusage r;
+   getrusage(RUSAGE_SELF, &r); 
 
-    struct rusage r;
-    getrusage(RUSAGE_SELF, &r);    
-    gettimeofday(&tv, NULL);
-    */
-    // printf("%ld %06lu\n", tv.tv_sec, tv.tv_usec);
-
-    /*
-    clock_t end = clock();
-    const double time = static_cast<double>(end - start) / CLOCKS_PER_SEC * 1000.0;
-    
-    std::cout << "[log]," << tv.tv_sec << "," << global_counter << "," << utilization << "," << r.ru_maxrss << "," << time << std::endl;
-    */
-
-    global_counter++;
-    
+   clock_t end = clock();
+   const double time = static_cast<double>(end - start) / CLOCKS_PER_SEC * 1000.0;
+   
+   // std::cout << "[log]," << tv.tv_sec << "," << global_counter << "," << utilization << "," << r.ru_maxrss << "," << time << endl;
 }
 
 void initqueue(queue_t* q) {
@@ -498,13 +481,7 @@ int main(int argc, char* argv[]) {
         printf("Usage: search_strings PATTERN [DIR]\n"); return 0;
     }
     */
-
-    /*
-    isCapableP2P(4);
-    enableP2P(4);
-    allocateCUDAmemory(4);
-    */    
-
+    
     cpu_num = sysconf(_SC_NPROCESSORS_CONF);
 
     initqueue(&q);
@@ -537,72 +514,42 @@ int main(int argc, char* argv[]) {
 
     // print_result(&targ[0]);
 
-    /*
-    typedef tbb::concurrent_hash_map<long, int> iTbb_Vec_timestamp;
-    static iTbb_Vec_timestamp TbbVec_timestamp; 
-    */
-
-    size_t kBytes = TbbVec_timestamp.size() * sizeof(unsigned long long);
-    unsigned long long *key;
-    key = (unsigned long long *)malloc(kBytes);
-
-    size_t vBytes = TbbVec_timestamp.size() * sizeof(long);
-    long *value;
-    value = (long *)malloc(vBytes);
-
-    unsigned long long *key_out;
-    key_out = (unsigned long long *)malloc(kBytes);
+    double avg = global_duration / (double)global_counter;
+    // cout << global_counter << endl;
+    // printf("avg:%10f\n", avg);
+    cout << "avg:" << avg << endl;
+    printf("duration total:%10f\n", global_duration);
+    printf("total:%d\n", global_counter);
     
-    long *value_out;
-    value_out = (long *)malloc(vBytes);
-
-    i = 0;
-    for(auto itr = TbbVec_timestamp.begin(); itr != TbbVec_timestamp.end(); ++itr) {
-      key[i] = (unsigned long long)(itr->first);
-      value[i] = (long)(itr->second);
-      i++;
-    }
-
+    // cout << "avg:" << avg << endl;
+    
     clock_gettime(CLOCK_REALTIME, &startTime);
     sleepTime.tv_sec = 0;
     sleepTime.tv_nsec = 123;
     
-    sort(key, value, key_out, value_out, kBytes, vBytes, TbbVec_timestamp.size(),0);
-
-    clock_gettime(CLOCK_REALTIME, &endTime);
-
-    printf("[sort]");
-    if (endTime.tv_nsec < startTime.tv_nsec) {
-      printf("%ld.%09ld", endTime.tv_sec - startTime.tv_sec - 1
-	     ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
-    } else {
-      printf("%ld.%09ld", endTime.tv_sec - startTime.tv_sec
-	     ,endTime.tv_nsec - startTime.tv_nsec);
-    }
-    printf(" sec\n");
-    
-    
-    ofstream outputfile("tmp-counts");
-    for(i = 0; i < TbbVec_timestamp.size(); i++) {
-      std::string timestamp = to_string(key_out[i]);
-
-      outputfile << timestamp.substr(0,4) << "-" << timestamp.substr(4,2) << "-" << timestamp.substr(6,2) << " "
-		 << timestamp.substr(8,2) << ":" << timestamp.substr(10,2) << ":" << timestamp.substr(12,2)
-		 << "." << timestamp.substr(14,3) << ","
-		 << value_out[i] << endl; 
-    }
-    outputfile.close();
-    
-    
-    /*
     std::map<unsigned long long, long> final;
-
+    
     for(auto itr = TbbVec_timestamp.begin(); itr != TbbVec_timestamp.end(); ++itr) {
       final.insert(std::make_pair((unsigned long long)(itr->first), long(itr->second)));
     }
+
+    char str[100];
+    char *ends;
+	
+    clock_gettime(CLOCK_REALTIME, &endTime);
+    if (endTime.tv_nsec < startTime.tv_nsec) {
+      sprintf(str, "%ld.%ld", endTime.tv_sec - startTime.tv_sec - 1 ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
+    } else {
+      sprintf(str,"%ld.%ld", endTime.tv_sec - startTime.tv_sec ,endTime.tv_nsec - startTime.tv_nsec);
+    }
     
+    // double tmp = atof(str);
+    double tmp = strtod( str, &ends );
+    printf("sort:%f\n",tmp);
+
     ofstream outputfile("tmp-counts");
     for(auto itr = final.begin(); itr != final.end(); ++itr) {
+
       std::string timestamp = to_string(itr->first);
 
       outputfile << timestamp.substr(0,4) << "-" << timestamp.substr(4,2) << "-" << timestamp.substr(6,2) << " "
@@ -611,12 +558,8 @@ int main(int argc, char* argv[]) {
 		 << itr->second << endl; 
     }
     outputfile.close();
-    */
 
-    /*
-    disableP2P(4);
-    freeCUDAmemory(4);
-    */    
 
+    
     return 0;
 }
