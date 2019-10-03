@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <chrono>
+#include "timer.h"
 
 #include <stdio.h>
 
@@ -26,7 +27,8 @@ int main(int argc, char *argv[])
 {
 
     int N = atoi(argv[1]);
-
+    unsigned int t, travdirtime;
+    
     // boost::timer::cpu_timer timer;
     // timer.start(); 
 
@@ -37,6 +39,8 @@ int main(int argc, char *argv[])
 
     struct timespec startTime, endTime, sleepTime;
 
+    start_timer(&t);
+    
     std::random_device rnd;
     std::mt19937 mt(rnd());
     std::uniform_int_distribution<unsigned long long> randN(20190501000000000, 20190501005959000);
@@ -45,7 +49,7 @@ int main(int argc, char *argv[])
 
     std::map<unsigned long long, long> mp;
 
-    iTbb_Vec_timestamp::accessor t;
+    iTbb_Vec_timestamp::accessor tt;
 
     clock_gettime(CLOCK_REALTIME, &startTime);
     sleepTime.tv_sec = 0;
@@ -54,8 +58,8 @@ int main(int argc, char *argv[])
     for (int i = 0; i < N; ++i) {    
         unsigned long long n = randN(mt);
 	long m = randM(mt);
-        TbbVec_timestamp.insert(t, n);
-	t->second += m;
+        TbbVec_timestamp.insert(tt, n);
+	tt->second += m;
     }
 
     clock_gettime(CLOCK_REALTIME, &endTime);
@@ -117,6 +121,9 @@ int main(int argc, char *argv[])
     */
 
     // cout << elapsed << endl;
+
+    travdirtime = stop_timer(&t);
+    print_timer(travdirtime);
     
     return 0;
 }

@@ -28,7 +28,7 @@ unsigned int stop_timer(unsigned int *startt) {
 }
 
 /* ‡CŽžŠÔŒv‘ªŒ‹‰Ê‚Ì•\Ž¦ */
-#define print_timer(te) {printf("time of %s:%f[msec]\n", #te, te*1.0e-3);}
+#define print_timer(te) {printf("total elapsed time :%f[msec]\n", te*1.0e-3);}
 
 #endif /*_H_TIMER*/
 
