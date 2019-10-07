@@ -101,7 +101,7 @@ void transfer(unsigned long long *key, long *value, unsigned long long *key_out,
 
     clock_gettime(CLOCK_REALTIME, &endTime);
 
-    printf("[memory transfer] hostToDevice - ");
+    printf("[GPU][memory transfer]hostToDevice,%d,",data_size);
     if (endTime.tv_nsec < startTime.tv_nsec) {
       printf("%ld.%09ld", endTime.tv_sec - startTime.tv_sec - 1
 	     ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
@@ -109,7 +109,7 @@ void transfer(unsigned long long *key, long *value, unsigned long long *key_out,
       printf("%ld.%09ld", endTime.tv_sec - startTime.tv_sec
 	     ,endTime.tv_nsec - startTime.tv_nsec);
     }
-    printf(" sec\n");
+    printf("\n");
 
     clock_gettime(CLOCK_REALTIME, &startTime);
     sleepTime.tv_sec = 0;
@@ -126,7 +126,7 @@ void transfer(unsigned long long *key, long *value, unsigned long long *key_out,
 
     clock_gettime(CLOCK_REALTIME, &endTime);
 
-    printf("[reduction] - ");
+    printf("[GPU][reduction],%d,",data_size);
     if (endTime.tv_nsec < startTime.tv_nsec) {
       printf("%ld.%09ld", endTime.tv_sec - startTime.tv_sec - 1
 	     ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
@@ -134,7 +134,7 @@ void transfer(unsigned long long *key, long *value, unsigned long long *key_out,
       printf("%ld.%09ld", endTime.tv_sec - startTime.tv_sec
 	     ,endTime.tv_nsec - startTime.tv_nsec);
     }
-    printf(" sec\n");
+    printf("\n");
 
     clock_gettime(CLOCK_REALTIME, &startTime);
     sleepTime.tv_sec = 0;
@@ -154,7 +154,7 @@ void transfer(unsigned long long *key, long *value, unsigned long long *key_out,
 
     clock_gettime(CLOCK_REALTIME, &endTime);
 
-    printf("[memory transfer] deviceToHost - ");
+    printf("[GPU][memory transfer]deviceToHost,%d,",data_size);
     if (endTime.tv_nsec < startTime.tv_nsec) {
       printf("%ld.%09ld", endTime.tv_sec - startTime.tv_sec - 1
 	     ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
@@ -167,10 +167,10 @@ void transfer(unsigned long long *key, long *value, unsigned long long *key_out,
     clock_t end = clock();
     const double time = static_cast<double>(end - start) / CLOCKS_PER_SEC * 1000.0;
 
-/*
+    /*
     cout << "thread:" << thread_id << " - reduction done with new_size " << new_size_r
     	 << "(" << data_size << ") - " << time << endl;
-*/
+    */
 
     (*new_size) = new_size_r;
 

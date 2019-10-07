@@ -38,7 +38,6 @@ int main(int argc, char *argv[])
     */
 
     struct timespec startTime, endTime, sleepTime;
-
     start_timer(&t);
     
     std::random_device rnd;
@@ -64,7 +63,7 @@ int main(int argc, char *argv[])
 
     clock_gettime(CLOCK_REALTIME, &endTime);
 
-    printf("[hashmap insertion] ");
+    printf("[CPU][hashmap insertion],%d,",N);
     if (endTime.tv_nsec < startTime.tv_nsec) {
       printf("%ld.%09ld", endTime.tv_sec - startTime.tv_sec - 1
 	     ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
@@ -73,7 +72,7 @@ int main(int argc, char *argv[])
 	     ,endTime.tv_nsec - startTime.tv_nsec);
     }
 
-    printf(" sec\n");
+    printf("\n");
 
     /*
     for(auto itr = mp.begin(); itr != mp.end(); ++itr) {
@@ -93,7 +92,7 @@ int main(int argc, char *argv[])
 
     clock_gettime(CLOCK_REALTIME, &endTime);
 
-    printf("[sort] ");
+    printf("[CPU][sort],%d,",N);
     if (endTime.tv_nsec < startTime.tv_nsec) {
       printf("%ld.%09ld", endTime.tv_sec - startTime.tv_sec - 1
 	     ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
@@ -101,7 +100,7 @@ int main(int argc, char *argv[])
       printf("%ld.%09ld", endTime.tv_sec - startTime.tv_sec
 	     ,endTime.tv_nsec - startTime.tv_nsec);
     }
-    printf(" sec\n");
+    printf("\n");
     
     /*
     for(auto itr = final.begin(); itr != final.end(); ++itr) {

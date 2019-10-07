@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
 	tms->second += value_out[i];
       }
 
-    printf("[hashmap insertion] - ");
+    printf("[GPU][hashmap insertion],%d,",N);
     clock_gettime(CLOCK_REALTIME, &endTime);
     if (endTime.tv_nsec < startTime.tv_nsec) {
       printf("%ld.%09ld", endTime.tv_sec - startTime.tv_sec - 1
@@ -88,7 +88,8 @@ int main(int argc, char *argv[])
       printf("%ld.%09ld", endTime.tv_sec - startTime.tv_sec
 	     ,endTime.tv_nsec - startTime.tv_nsec);
     }
-    printf(" sec @ %d \n", new_size);
+    // printf(" sec @ %d \n", new_size);
+    printf("\n");
 
     free(key);
     free(value);
@@ -117,7 +118,7 @@ int main(int argc, char *argv[])
 
     sort(key, value, key_out, value_out, kBytes, vBytes, TbbVec_timestamp.size(),0);
 
-    printf("[sort] - ");
+    printf("[GPU][sort],%d,",N);
     clock_gettime(CLOCK_REALTIME, &endTime);
     if (endTime.tv_nsec < startTime.tv_nsec) {
       printf("%ld.%09ld", endTime.tv_sec - startTime.tv_sec - 1
@@ -126,7 +127,8 @@ int main(int argc, char *argv[])
       printf("%ld.%09ld", endTime.tv_sec - startTime.tv_sec
 	     ,endTime.tv_nsec - startTime.tv_nsec);
     }
-    printf(" sec @ %d \n", new_size);
+    // printf(" sec @ %d \n", new_size);
+    printf("\n");
 
     travdirtime = stop_timer(&t);
     print_timer(travdirtime);
