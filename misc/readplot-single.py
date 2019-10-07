@@ -30,7 +30,7 @@ if __name__ == "__main__":
     plt.xlabel("# of data (randomly generated)")
     plt.ylabel("elapsed time")
     
-    #ax.plot(data[:,1], label = "TBB")
+    ax.plot(data[:,1], label = "")
     #ax.plot(data2[:,1], label= "CUDA")
     plt.legend()
     

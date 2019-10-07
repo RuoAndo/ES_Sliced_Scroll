@@ -1,0 +1,6 @@
+ 2084  grep hostToDevice tmp
+ 2085  grep hostToDevice tmp | cut -d "," -f 2 3
+ 2086  grep hostToDevice tmp | cut -d "," -f 2
+ 2087  grep hostToDevice tmp | cut -d "," -f 2,3
+ 2088  grep hostToDevice tmp | cut -d "," -f 2,3 > tmp2
+
