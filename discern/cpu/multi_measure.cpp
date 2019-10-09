@@ -141,139 +141,246 @@ bool get_cpu_times(size_t &idle_time, size_t &total_time) {
 }
 
 int traverse_file(char* filename, int thread_id) {
-    char buf[1024];
-    int n = 0, sumn = 0;
-    int i;
-    unsigned int t, travdirtime;
-    struct timeval tv;
 
-    struct timespec startTime, endTime, sleepTime;
-    int counter = 0;
 
-    double local_duration = 0;
+  int counter = 0;
+  int addr_counter = 0;
+  
+  // int N = atoi(argv[3]);  
+  int netmask;
+  std::map <int,int> found_flag;
+  std::map <int,int> found_flag_2;
+  
+  try {
+
+    const string list_file = "monitoring_list"; 
+    vector<vector<string>> list_data; 
     
-    std::string s1 = "-read";
-
-    clock_t start = clock();
-    
-    printf("ThreadID:%d:%d:%s \n", thread_id, global_counter, filename);
-    /*
-    std::cout << "threadID:" << thread_id << ",fileNo:" << global_counter << ", [" << now_str()
-	      << "] ," << filename << std::endl;
-    */
-
-    gettimeofday(&tv, NULL);
-
-    // printf("%ld %06lu\n", tv.tv_sec, tv.tv_usec);
-    
-    const string csv_file = std::string(filename); 
-    vector<vector<string>> data; 
-
-    Csv objCsv(csv_file);
-    if (!objCsv.getCsv(data)) {
-       cout << "read ERROR" << endl;
-       return 1;
+    const string session_file = string(filename); 
+    vector<vector<string>> session_data; 
+	
+    try {
+      Csv objCsv(list_file);
+      if (!objCsv.getCsv(list_data)) {
+	cout << "read ERROR" << endl;
+	return 1;
+      }
+    }
+    catch (...) {
+      cout << "EXCEPTION (session)" << endl;
+      return 1;
+    }
+  
+    try {
+      Csv objCsv(session_file);
+      if (!objCsv.getCsv(session_data)) {
+	cout << "read ERROR" << endl;
+	return 1;
+      }
+    }
+    catch (...) {
+      cout << "EXCEPTION (session)" << endl;
+      return 1;
     }
 
-    size_t kBytes = data.size() * sizeof(unsigned long long);
-    unsigned long long *key;
-    key = (unsigned long long *)malloc(kBytes);
-
-    size_t vBytes = data.size() * sizeof(long);
-    long *value;
-    value = (long *)malloc(vBytes);
-
-    unsigned long long *key_out;
-    key_out = (unsigned long long *)malloc(kBytes);
-    
-    long *value_out;
-    value_out = (long *)malloc(vBytes);
-
-    int new_size = 0;
-    
-    start_timer(&t);    
-    for (unsigned int row = 0; row < data.size(); row++)
+    // init map
+    for(int i=0; i<session_data.size(); i++)
       {
-	std::vector<string> rec = data[row];
-
-	std::string tms = rec[0];
+	found_flag[i] = 0;
+	found_flag_2[i] = 0;
+      }
+    
+    counter = 0;
+    for (unsigned int row = 0; row < list_data.size(); row++) {
+      
+      vector<string> rec = list_data[row];
+      const string argIP = rec[0]; 
+      std::string argIPstring;
+      
+      netmask = atoi(rec[1].c_str());
+	    
+      std::cout << addr_counter << "(" << list_data.size() << "):" << argIP << "/" << netmask << std::endl;
+	    
+      char del2 = '.';
+	    
+      for (const auto subStr : split_string_2(argIP, del2)) {
+	unsigned long ipaddr_src;
+	ipaddr_src = atol(subStr.c_str());
+	std::bitset<8> trans =  std::bitset<8>(ipaddr_src);
+	std::string trans_string = trans.to_string();
+	      argIPstring = argIPstring + trans_string;
+      }
+	    
+      for (unsigned int row2 = 0; row2 < session_data.size(); row2++) {
+	vector<string> rec2 = session_data[row2];
+	std::string srcIP = rec2[4];
+	std::string destIP = rec2[7];
 	
-	for(size_t c = tms.find_first_of("\""); c != string::npos; c = c = tms.find_first_of("\"")){
-    	      tms.erase(c,1);
-	}
-
-	for(size_t c = tms.find_first_of("/"); c != string::npos; c = c = tms.find_first_of("/")){
-	      tms.erase(c,1);
-	}
-
-        for(size_t c = tms.find_first_of("."); c != string::npos; c = c = tms.find_first_of(".")){
-	      tms.erase(c,1);
-	}
-
-	for(size_t c = tms.find_first_of(" "); c != string::npos; c = c = tms.find_first_of(" ")){
-	      tms.erase(c,1);
-	}
-
-	for(size_t c = tms.find_first_of(":"); c != string::npos; c = c = tms.find_first_of(":")){
-	      tms.erase(c,1);
-	}
-
-	// key[row] = stoull(tms);
-	// value[row] = 1;
-
-	std::string bytes = rec[20];
-	// std::string bytes = rec[1];
-
-	for(size_t c = bytes.find_first_of("\""); c != string::npos; c = c = bytes.find_first_of("\"")){
-	  bytes.erase(c,1);
-	}         
-
-	clock_gettime(CLOCK_REALTIME, &startTime);
-	sleepTime.tv_sec = 0;
-	sleepTime.tv_nsec = 123;
-	
-	iTbb_Vec_timestamp::accessor t;
-	TbbVec_timestamp.insert(t, stoull(tms));
-	t->second += 1;
-	t->second += stol(bytes);
-
-	char str[100];
-	char *ends;
-	
-	clock_gettime(CLOCK_REALTIME, &endTime);
-
-	// printf("開始時刻　 = %10ld.%09ld\n", startTime.tv_sec, startTime.tv_nsec);
-	// printf("終了時刻　 = %10ld.%09ld\n", endTime.tv_sec, endTime.tv_nsec);
-	// printf("経過実時間 = ");
-	if (endTime.tv_nsec < startTime.tv_nsec) {
-	  sprintf(str, "%10ld.%09ld", endTime.tv_sec - startTime.tv_sec - 1 ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
-	} else {
-	  sprintf(str,"%10ld.%09ld", endTime.tv_sec - startTime.tv_sec ,endTime.tv_nsec - startTime.tv_nsec);
+	for(size_t c = srcIP.find_first_of("\""); c != string::npos; c = c = srcIP.find_first_of("\"")){
+	  srcIP.erase(c,1);
 	}
 	
-	double tmp = strtod( str, &ends );
-	global_duration = global_duration + tmp;
-	local_duration = local_duration + tmp;
+	for(size_t c = destIP.find_first_of("\""); c != string::npos; c = c = destIP.find_first_of("\"")){
+	  destIP.erase(c,1);
+	}
+				
+	std::string sessionIPstring;
+	for (const auto subStr : split_string_2(srcIP, del2)) {
+	  unsigned long ipaddr_src;
+	  ipaddr_src = atol(subStr.c_str());
+	  std::bitset<8> trans =  std::bitset<8>(ipaddr_src);
+	  std::string trans_string = trans.to_string();
+	  sessionIPstring = sessionIPstring + trans_string;
+	}
+		
+	std::bitset<32> bit_argIP(argIPstring);
+	std::bitset<32> bit_sessionIP(sessionIPstring);
+	
+	std::bitset<32> trans2(0xFFFFFFFF);
+	trans2 <<= netmask;
+	bit_sessionIP &= trans2;
+	
+	if(bit_sessionIP == bit_argIP)
+	  {
+	    std::string all_line;
+	    all_line = "1";
+	    for(auto itr = rec2.begin(); itr != rec2.end(); ++itr) {
+	      all_line = all_line + "," + *itr;
+	    }
+	    found_flag[row2] = 1;
+	  }
 
-	global_counter++;    
+	std::string sessionIPstring_2;
+	for (const auto subStr : split_string_2(destIP, del2)) {
+	  unsigned long ipaddr_dest;
+	  ipaddr_dest = atol(subStr.c_str());
+	  std::bitset<8> trans =  std::bitset<8>(ipaddr_dest);
+	  std::string trans_string = trans.to_string();
+	  sessionIPstring_2 = sessionIPstring_2 + trans_string;
+	}
+		
+	std::bitset<32> bit_argIP_2(argIPstring);
+	std::bitset<32> bit_sessionIP_2(sessionIPstring_2);
+	
+	std::bitset<32> trans2_2(0xFFFFFFFF);
+	trans2_2 <<= netmask;
+	bit_sessionIP_2 &= trans2_2;
+	
+	if(bit_sessionIP_2 == bit_argIP_2)
+	  {
+	    std::string all_line;
+	    all_line = "0";
+	    for(auto itr = rec2.begin(); itr != rec2.end(); ++itr) {
+	      all_line = all_line + "," + *itr;
+	    }
+	    found_flag_2[row2] = 1;
+	  }
       }
 
-    printf("ThreadID:%d - [hashmap insertion] %f \n", thread_id, local_duration);
+      addr_counter++;
+    }
     
-   size_t previous_idle_time=0, previous_total_time=0;
-   size_t idle_time=0, total_time=0;
-   get_cpu_times(idle_time, total_time); 
-   const float idle_time_delta = idle_time - previous_idle_time;
-   const float total_time_delta = total_time - previous_total_time;
-   const float utilization = 100.0 * (1.0 - idle_time_delta / total_time_delta);
+    int ingress_counter = 0;
+    int egress_counter = 0;
+    
+    for(auto itr = found_flag.begin(); itr != found_flag.end(); ++itr) {
+      if(itr->second==1)
+	ingress_counter++;
+    }
+    
+    for(auto itr = found_flag_2.begin(); itr != found_flag_2.end(); ++itr) {
+      if(itr->second==1)
+	egress_counter++;
+    }
+	      
+    std::cout << "INGRESS:" << ingress_counter << "," << "EGRESS:" << egress_counter << "," << "ALL:" << session_data.size() << std::endl;
+	      
+    const string file_rendered_outward = session_file + "_egress";
+    ofstream outputfile_outward(file_rendered_outward);
+    
+    const string file_rendered_inward = session_file + "_ingress";
+    ofstream outputfile_inward(file_rendered_inward);
+    
+    for (unsigned int row3 = 0; row3 < session_data.size(); row3++) {
+      vector<string> rec3 = session_data[row3];
+      if(found_flag[row3]==1)
+	{
+	  std::string all_line;
+	  all_line = "1";
+	  for(auto itr = rec3.begin(); itr != rec3.end(); ++itr) {
+	    all_line = all_line + "," + *itr;
+	  }
+	  outputfile_outward << all_line << std::endl;
+	}
+      if(found_flag_2[row3]==1)
+	{
+	  std::string all_line;
+	  all_line = "0";
+	  for(auto itr = rec3.begin(); itr != rec3.end(); ++itr) {
+	    all_line = all_line + "," + *itr;
+	  }
+	  outputfile_inward << all_line << std::endl;
+	}	
+    }
 
-   struct rusage r;
-   getrusage(RUSAGE_SELF, &r); 
+    outputfile_inward.close();
+    outputfile_outward.close();
 
-   clock_t end = clock();
-   const double time = static_cast<double>(end - start) / CLOCKS_PER_SEC * 1000.0;
-   
-   // std::cout << "[log]," << tv.tv_sec << "," << global_counter << "," << utilization << "," << r.ru_maxrss << "," << time << endl;
+    // int ingress_counter = 0;
+    // int egress_counter = 0;
+	  
+    for(auto itr = found_flag.begin(); itr != found_flag.end(); ++itr) {
+      if(itr->second==1)
+	ingress_counter++;
+    }
+    
+    for(auto itr = found_flag_2.begin(); itr != found_flag_2.end(); ++itr) {
+      if(itr->second==1)
+	egress_counter++;
+    }
+    
+    std::cout << "INGRESS:" << ingress_counter << "," << "EGRESS:" << egress_counter << "," << "ALL:" << session_data.size() << std::endl;
+
+    /*
+    const string file_rendered_outward = session_file + "_egress";
+    ofstream outputfile_outward(file_rendered_outward);
+	  
+    const string file_rendered_inward = session_file + "_ingress";
+    ofstream outputfile_inward(file_rendered_inward);
+    
+    for (unsigned int row3 = 0; row3 < session_data.size(); row3++) {
+      vector<string> rec3 = session_data[row3];
+      if(found_flag[row3]==1)
+	{
+	  std::string all_line;
+	  all_line = "1";
+	  for(auto itr = rec3.begin(); itr != rec3.end(); ++itr) {
+	    all_line = all_line + "," + *itr;
+	  }
+	  outputfile_outward << all_line << std::endl;
+	}
+      if(found_flag_2[row3]==1)
+	{
+	  std::string all_line;
+	  all_line = "0";
+	  for(auto itr = rec3.begin(); itr != rec3.end(); ++itr) {
+	    all_line = all_line + "," + *itr;
+	  }
+	  outputfile_inward << all_line << std::endl;
+	}	
+    }
+    
+    outputfile_inward.close();
+    outputfile_outward.close();
+    */
+    
+    return 0;
+  }
+    
+  catch(std::exception& e) {
+    std::cerr<<"error occurred. error text is :\"" <<e.what()<<"\"\n";
+  }
+
 }
 
 void initqueue(queue_t* q) {
