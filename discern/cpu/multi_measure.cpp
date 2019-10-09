@@ -31,11 +31,15 @@
 #include "tbb/task_scheduler_init.h"
 #include "tbb/concurrent_vector.h"
 #include "utility.h"
+#include <boost/algorithm/string.hpp>
 
 #include "csv.hpp"
 #include "timer.h"
 
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem.hpp>
 
 using namespace std;
 using namespace tbb;
@@ -292,9 +296,29 @@ int traverse_file(char* filename, int thread_id) {
       if(itr->second==1)
 	egress_counter++;
     }
-	      
+    
     std::cout << "INGRESS:" << ingress_counter << "," << "EGRESS:" << egress_counter << "," << "ALL:" << session_data.size() << std::endl;
-	      
+
+    // boost:filesystem::path full_path(filename);
+    // boost::filesystem::path dir = p.parent_path();
+
+    boost::filesystem::path full_path(boost::filesystem::current_path());
+    cout << full_path << endl;
+    boost::filesystem::path dir = full_path.parent_path();
+    cout << dir << endl;
+
+    string tmp_filename = string(filename);
+    cout << tmp_filename << endl;
+
+    string delim ("/");
+    list<string> list_string;
+    boost::split(list_string, tmp_filename, boost::is_any_of(delim));
+    cout << list_string.back() << endl;
+
+    string filename_dst = full_path.string() + "/" + list_string.back() + "_egress";
+    cout << filename_dst << endl;
+    
+    /*
     const string file_rendered_outward = session_file + "_egress";
     ofstream outputfile_outward(file_rendered_outward);
     
@@ -325,21 +349,8 @@ int traverse_file(char* filename, int thread_id) {
 
     outputfile_inward.close();
     outputfile_outward.close();
+    */
 
-    // int ingress_counter = 0;
-    // int egress_counter = 0;
-	  
-    for(auto itr = found_flag.begin(); itr != found_flag.end(); ++itr) {
-      if(itr->second==1)
-	ingress_counter++;
-    }
-    
-    for(auto itr = found_flag_2.begin(); itr != found_flag_2.end(); ++itr) {
-      if(itr->second==1)
-	egress_counter++;
-    }
-    
-    std::cout << "INGRESS:" << ingress_counter << "," << "EGRESS:" << egress_counter << "," << "ALL:" << session_data.size() << std::endl;
 
     /*
     const string file_rendered_outward = session_file + "_egress";
@@ -628,7 +639,7 @@ int main(int argc, char* argv[]) {
     printf("total# of files :%d\n", global_counter);
     //cout << "[insertion]avg time for insertion:" << avg << endl;
     
-    printf("[insertion]total duration time insertion:%f\n", global_duration);
+    // printf("[insertion]total duration time insertion:%f\n", global_duration);
     // cout << "avg:" << avg << endl;
     
     clock_gettime(CLOCK_REALTIME, &startTime);
@@ -655,7 +666,7 @@ int main(int argc, char* argv[]) {
     
     // double tmp = atof(str);
     double tmp = strtod( str, &ends );
-    printf("[insertion and sorting] elapsed time of sort:%f - %d \n",tmp, tmp_counter);
+    // printf("[insertion and sorting] elapsed time of sort:%f - %d \n",tmp, tmp_counter);
 
     ofstream outputfile("tmp-counts");
     for(auto itr = final.begin(); itr != final.end(); ++itr) {
