@@ -151,16 +151,13 @@ int traverse_file(char* filename, int thread_id) {
   int counter = 0;
   int addr_counter = 0;
   int egress_counter = 0;
-  int in_counter = 0;
+  int ingress_counter = 0;
   
   // int N = atoi(argv[3]);  
   int netmask;
   std::map <int,int> found_flag;
   std::map <int,int> found_flag_2;
 
-  struct timespec startTime, endTime, sleepTime;
-  unsigned int t, travdirtime;
-  
   try {
 
     const string list_file = "monitoring_list"; 
@@ -208,8 +205,6 @@ int traverse_file(char* filename, int thread_id) {
       std::string argIPstring;
 
       egress_counter = 0;
-
-      start_timer(&t);
       
       netmask = atoi(rec[1].c_str());
 	    
@@ -293,24 +288,9 @@ int traverse_file(char* filename, int thread_id) {
       /* reset */
       for(int i =0; i < session_data.size(); i++)
 	  result[i]=1;
-
-      clock_gettime(CLOCK_REALTIME, &startTime);
-      sleepTime.tv_sec = 0;
-      sleepTime.tv_nsec = 123;
       
       discern(srcIP_ul, netmask_ul, address_to_match, result, session_data.size(), thread_id);
-      
-      clock_gettime(CLOCK_REALTIME, &endTime);
-      printf("discern 1 (srcIP)");
-      if (endTime.tv_nsec < startTime.tv_nsec) {
-	printf("%10ld.%09ld", endTime.tv_sec - startTime.tv_sec - 1
-	       ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
-      } else {
-	printf("%10ld.%09ld", endTime.tv_sec - startTime.tv_sec
-	       ,endTime.tv_nsec - startTime.tv_nsec);
-      }
-      printf(" sec\n");
-      
+
       for(int i =0; i < session_data.size(); i++)
 	{
 	  if(result[i]==0)
@@ -320,34 +300,15 @@ int traverse_file(char* filename, int thread_id) {
       /* reset */
       for(int i =0; i < session_data.size(); i++)
 	  result[i]=1;
-
-      clock_gettime(CLOCK_REALTIME, &startTime);
-      sleepTime.tv_sec = 0;
-      sleepTime.tv_nsec = 123;
       
       discern(dstIP_ul, netmask_ul, address_to_match, result, session_data.size(), thread_id);
 
-      clock_gettime(CLOCK_REALTIME, &endTime);
-      printf("discern 2 (destIP) ");
-      if (endTime.tv_nsec < startTime.tv_nsec) {
-	printf("%10ld.%09ld", endTime.tv_sec - startTime.tv_sec - 1
-	       ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
-      } else {
-	printf("%10ld.%09ld", endTime.tv_sec - startTime.tv_sec
-	       ,endTime.tv_nsec - startTime.tv_nsec);
-      }
-      printf(" sec\n");
-      
       for(int i =0; i < session_data.size(); i++)
 	{
 	  if(result[i]==0)
 	    found_flag_2[i] = 1;
 	}
 
-      /* per one list */
-      travdirtime = stop_timer(&t);
-      print_timer(travdirtime);
-    
       //  cout << address_to_match << "," << egress_counter << endl;
     }
 
