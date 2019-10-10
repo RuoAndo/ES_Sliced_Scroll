@@ -145,8 +145,6 @@ bool get_cpu_times(size_t &idle_time, size_t &total_time) {
 }
 
 int traverse_file(char* filename, int thread_id) {
-
-
   int counter = 0;
   int addr_counter = 0;
   
@@ -154,6 +152,8 @@ int traverse_file(char* filename, int thread_id) {
   int netmask;
   std::map <int,int> found_flag;
   std::map <int,int> found_flag_2;
+
+  struct timespec startTime, endTime, sleepTime;
   
   try {
 
@@ -202,9 +202,14 @@ int traverse_file(char* filename, int thread_id) {
       std::string argIPstring;
       
       netmask = atoi(rec[1].c_str());
-	    
-      std::cout << addr_counter << "(" << list_data.size() << "):" << argIP << "/" << netmask << std::endl;
-	    
+
+      /* LOG */
+      // std::cout << addr_counter << "(" << list_data.size() << "):" << argIP << "/" << netmask << std::endl;
+
+      clock_gettime(CLOCK_REALTIME, &startTime);
+      sleepTime.tv_sec = 0;
+      sleepTime.tv_nsec = 123;
+      
       char del2 = '.';
 	    
       for (const auto subStr : split_string_2(argIP, del2)) {
@@ -281,6 +286,16 @@ int traverse_file(char* filename, int thread_id) {
 	  }
       }
 
+      clock_gettime(CLOCK_REALTIME, &endTime);
+      if (endTime.tv_nsec < startTime.tv_nsec) {
+	printf("%d - %ld.%09ld", row, endTime.tv_sec - startTime.tv_sec - 1
+	       , endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
+      } else {
+	printf("%d - %ld.%09ld", row, endTime.tv_sec - startTime.tv_sec
+	       ,endTime.tv_nsec - startTime.tv_nsec);
+      }
+      printf(" sec\n");
+      
       addr_counter++;
     }
     
@@ -299,9 +314,7 @@ int traverse_file(char* filename, int thread_id) {
     
     std::cout << "INGRESS:" << ingress_counter << "," << "EGRESS:" << egress_counter << "," << "ALL:" << session_data.size() << std::endl;
 
-    // boost:filesystem::path full_path(filename);
-    // boost::filesystem::path dir = p.parent_path();
-
+    /*
     boost::filesystem::path full_path(boost::filesystem::current_path());
     cout << full_path << endl;
     boost::filesystem::path dir = full_path.parent_path();
@@ -348,7 +361,8 @@ int traverse_file(char* filename, int thread_id) {
 
     outputfile_inward.close();
     outputfile_outward.close();
-  
+    */  
+
     /*
     const string file_rendered_outward = session_file + "_egress";
     ofstream outputfile_outward(file_rendered_outward);
