@@ -55,6 +55,7 @@ static iTbb_Vec_timestamp TbbVec_timestamp;
 
 static int global_counter = 0;
 static double global_duration = 0;
+static int file_counter = 0;
 
 extern void kernel(long* h_key, long* h_value_1, long* h_value_2, int size);
 void discern(unsigned long *IPaddress, unsigned long *netmask, unsigned long address_to_match, double *result, size_t data_size, int thread_id);
@@ -286,8 +287,6 @@ int traverse_file(char* filename, int thread_id) {
 	std::bitset<32> trans2(0xFFFFFFFF);
 	trans2 <<= 32 - netmask;
 	netmask_ul[row2] = trans2.to_ulong();
-
-	addr_counter++;
       }
       
       /* reset */
@@ -345,9 +344,13 @@ int traverse_file(char* filename, int thread_id) {
 	}
 
       /* per one list */
+      std::cout << "ThreadID" << thread_id << ":[" << file_counter << "]" << addr_counter << "(" << list_data.size() << "):" << argIP << "/" << netmask << " @ " << filename << std::endl;
+      
       travdirtime = stop_timer(&t);
       print_timer(travdirtime);
-    
+
+      addr_counter++;
+      
       //  cout << address_to_match << "," << egress_counter << endl;
     }
 
@@ -365,7 +368,8 @@ int traverse_file(char* filename, int thread_id) {
 	  counter_flag_2++;	
       }
 
-    cout << counter_flag << "," << counter_flag_2 << endl;
+    file_counter++;
+    cout << "[" << file_counter << "]" << counter_flag << "," << counter_flag_2 << " @ " << filename << endl;
 
     /*
     const string file_rendered_egress = session_file + "_egress";
