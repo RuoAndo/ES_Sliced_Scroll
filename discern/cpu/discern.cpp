@@ -55,6 +55,7 @@ static iTbb_Vec_timestamp TbbVec_timestamp;
 
 static int global_counter = 0;
 static double global_duration = 0;
+static int file_counter = 0;
 
 extern void kernel(long* h_key, long* h_value_1, long* h_value_2, int size);
 
@@ -203,9 +204,6 @@ int traverse_file(char* filename, int thread_id) {
       
       netmask = atoi(rec[1].c_str());
 
-      /* LOG */
-      // std::cout << addr_counter << "(" << list_data.size() << "):" << argIP << "/" << netmask << std::endl;
-
       clock_gettime(CLOCK_REALTIME, &startTime);
       sleepTime.tv_sec = 0;
       sleepTime.tv_nsec = 123;
@@ -286,16 +284,19 @@ int traverse_file(char* filename, int thread_id) {
 	  }
       }
 
+      /* LOG */
+      std::cout << "ThreadID:" << thread_id << "[" << file_counter << "]" << addr_counter << "(" << list_data.size() << "):" << argIP << "/" << netmask;
+
       clock_gettime(CLOCK_REALTIME, &endTime);
       if (endTime.tv_nsec < startTime.tv_nsec) {
-	printf("%d - %ld.%09ld", row, endTime.tv_sec - startTime.tv_sec - 1
+	printf(" %d - %ld.%09ld", row, endTime.tv_sec - startTime.tv_sec - 1
 	       , endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
       } else {
-	printf("%d - %ld.%09ld", row, endTime.tv_sec - startTime.tv_sec
+	printf(" %d - %ld.%09ld", row, endTime.tv_sec - startTime.tv_sec
 	       ,endTime.tv_nsec - startTime.tv_nsec);
       }
-      printf(" sec\n");
-      
+      printf(" sec @ %s\n", filename);
+
       addr_counter++;
     }
     
@@ -311,8 +312,10 @@ int traverse_file(char* filename, int thread_id) {
       if(itr->second==1)
 	egress_counter++;
     }
-    
-    std::cout << "INGRESS:" << ingress_counter << "," << "EGRESS:" << egress_counter << "," << "ALL:" << session_data.size() << std::endl;
+
+    file_counter++;
+    std::cout << "INGRESS:" << ingress_counter << "," << "EGRESS:" << egress_counter << "," << "ALL:" << session_data.size() << " @ "
+	      << "[" << file_counter << "]" << filename << std::endl;
 
     /*
     boost::filesystem::path full_path(boost::filesystem::current_path());
