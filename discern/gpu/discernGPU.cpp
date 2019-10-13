@@ -45,8 +45,8 @@ using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 5
-#define MAX_QUEUE_NUM 17
+#define WORKER_THREAD_NUM 33
+#define MAX_QUEUE_NUM 65
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
 
