@@ -1,4 +1,4 @@
-# reduction with CUDA Thrust
+# Reduction with CUDA Thrust
 
 THREAD=4, GPU=1
 
