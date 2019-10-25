@@ -85,12 +85,13 @@ sys     0m1.614s
 
 You see the error message above. But it might be OK.
 
-#[2] Parallel exporter
+# [2] Parallel exporter
 
 Modify USR, PASSWD and ADDRESS.
 
-# head -n 30 ./getSessionDataCSv.sh
 <pre>
+# head -n 30 ./getSessionDataCSv.sh
+
  18# Level of multiplex
  19MULTIPLE=32
  20
@@ -104,6 +105,7 @@ Modify USR, PASSWD and ADDRESS.
 
 <pre>
 # ./getSessionDataCSv.sh "2019/07/02 00:00" "2019/07/02 23:59"
+
 /mnt/data/ES_Sliced_Scroll/parallel_exporter
 == Starting data retrieval: 2019/10/25 17:50:02 ==
 --------------------------------------------
