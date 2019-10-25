@@ -1,21 +1,47 @@
-# ES_Sliced_Scroll - rev.2019.06.26
+# Usenix LISA 2019
 
-Elasticsearch provides scroll API for retrieving large numbers of results (or even all results) from a single search request, in much the same way as you would use a cursor on a traditional database. Unfortunately, in sequential manner, single scroll API invocation takes long time (more than 24 hours in general) to retrieve huge data data ranging from millions to billions.
-
-<img src="scrollAPI.jpg" width=80%>
-
-This figure depicts multiplexed scroll API of Elasticsearch. Key technique here is sliced scroll which is introduced in Elasticserch 5.0.0. Usually scroll queries return a lot of documents.By using sliced scroll, it is possible to split the scroll in multiple slices which can be consumed independently As shown in this figure, each process 1-6 is responsible for slices 1-6. Concerning process1 (slice1), it issues the query for ﬁve shards in data nodes. In total, 6(slices)∗5(shards) = 30(threads) are launched.
-
-# Usage
-Five lines should be changed according to your environment.
 <pre>
-# Elasticsearch connection parameters
-# Please change these four itmes in your environment
-USR=user_name # user name 
-PASSWD=elasticpasswd # password of Elasticsearch 
-ADDRESS= X.X.X.X:9200 # IP address and port number 
-INDEXNAME=index_name # index name 
+#cd ./putSession
+<pre>
 
-# Output file directory 
-OUTPUT_DIR=/root/Output_SessionData 
+modify USR and ADDRESS:
+<pre>
+# head -n 4 putSessionDataElastic.sh
+1: DIR=$(cd $(dirname $0);pwd)/
+2: 
+3: USR=user_name
+4: ADDRESS=192.168.0.3:9200
 </pre>
+
+set password of Elasticsearch:
+<pre>
+# cd conf/
+# head -n 1 putSessionDataElastic.conf
+server_password
+</pre>
+
+delete index (to make sure):
+<pre>
+curl -XDELETE username:password@192.168.64.195:9200/import_sessionlog_20190702
+</pre>
+
+build the binary:
+<pre>
+# ./build.sh rand_gen
+</pre>
+
+generate random data:
+<pre>
+# time ./rand_gen 100000
+
+real    0m3.122s
+user    0m2.985s
+sys     0m0.136s
+</pre>
+
+move generated data to ./Output_SessionData
+<pre>
+# rm -rf Output_SessionData/random_data.txt
+# mv random_data.txt ./Output_SessionData/
+</pre>
+
