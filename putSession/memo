@@ -1,0 +1,4 @@
+ 2088  curl -XGET username:password@192.168.64.195:9200/_aliases?pretty
+ 2089  curl -XGET username:password@192.168.64.195:9200/_aliases?pretty | grep 0702
+ 2090  curl -XDELETE username:password@192.168.64.195:9200/import_sessionlog_20190702 | grep 0702
+ 2092  curl -XGET username:password@192.168.64.195:9200/import_sessionlog_20190702
