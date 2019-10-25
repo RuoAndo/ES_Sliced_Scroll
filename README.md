@@ -1,25 +1,46 @@
 # Usenix LISA 2019
 
 <pre>
-# tree -d -L 1
 .
-├── clustering
-├── discern
-├── generator
-├── misc
-├── parallel_exporter
-├──    plot
-├── p  putSession
-└── reduction
+|-- clustering
+|   `-- gpu
+|-- discern
+|   |-- cpu
+|   `-- gpu
+|-- generator
+|-- misc
+|-- parallel_exporter
+|   `-- Output_SessionData
+|-- plot
+|-- putSession
+|   |-- conf
+|   |-- ElasticBulk_Data
+|   `-- Output_SessionData
+`-- reduction
+    |-- cpu
+    |-- gpu
+    `-- stl
 </pre>
 
 clustering: under testing
 
-discern: direction disrimination (you will need your own IP address list to match.
+discern: direction disrimination (you will need your own IP address list to match)
 <pre>
 X.X.X.X/24
 Y.Y.Y.Y/28
 </pre>
+
+generator: random session data generator.
+
+misc: tester of CUDA Thrust API
+
+paralel_exporter: parallel scroll API invocation
+
+plot: matplotlib
+
+putSession: parallel bulk inserter
+
+reduction: histogramming with CUDA Thrust and Intel TBB
 
 # [1] Parallel bulk inserter
 
