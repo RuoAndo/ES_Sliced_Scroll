@@ -1,6 +1,6 @@
 # Usenix LISA 2019
 
-# Parallel bulk inserter
+# [1] Parallel bulk inserter
 
 <pre>
 #cd ./putSession
@@ -81,4 +81,41 @@ elapsed_time:1.28126597404[sec]
 real    0m1.953s
 user    0m1.333s
 sys     0m1.614s
+</pre>
+
+You see the error message above. But it might be OK.
+
+#[2] Parallel exporter
+
+Modify USR, PASSWD and ADDRESS.
+
+# head -n 30 ./getSessionDataCSv.sh
+<pre>
+ 18# Level of multiplex
+ 19MULTIPLE=32
+ 20
+ 21# Elasticsearch connection parameters
+ 22# Please change these four itmes in your environment
+ 23USR=user_name
+ 24PASSWD=password
+ 25ADDRESS=192.168.0.3:9200
+ 26INDEXNAME=session_info
+</pre>
+
+<pre>
+# ./getSessionDataCSv.sh "2019/07/02 00:00" "2019/07/02 23:59"
+/mnt/data/ES_Sliced_Scroll/parallel_exporter
+== Starting data retrieval: 2019/10/25 17:50:02 ==
+--------------------------------------------
+-- Level of multiplex: 32
+--------------------------------------------
+-- The total number of data to be retrieved: 10000
+--------------------------------------------
+-- Log file: info_getSessionDataCSv.log
+--------------------------------------------
+-- Output CSV: /mnt/data/ES_Sliced_Scroll/parallel_exporter/Output_SessionData/OUTPUT_20190702_0000-20190702_2359_32.csv
+--------------------------------------------
+-- Retrieving data... PROGRESS: 288 / [*********+*********+*********+*********+*********+*********+*********+*********+*********+*********+*********+*********+*********+*********+*********+*********+*********+*********+*********+*********+*********+*********+*********+*********+*********+*********+*********+*********+********]
+--------------------------------------------
+== Data output is finished: 2019/10/25 17:54:58 ==
 </pre>
