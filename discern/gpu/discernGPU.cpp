@@ -45,8 +45,8 @@ using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 2
-#define MAX_QUEUE_NUM 9
+#define WORKER_THREAD_NUM 33
+#define MAX_QUEUE_NUM 65
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
 
@@ -350,7 +350,13 @@ int traverse_file(char* filename, int thread_id) {
       print_timer(travdirtime);
 
       addr_counter++;
-      
+
+      /* free */
+      free(srcIP_ul);
+      free(dstIP_ul);
+      free(netmask_ul);
+      free(result);
+
       //  cout << address_to_match << "," << egress_counter << endl;
     }
 
