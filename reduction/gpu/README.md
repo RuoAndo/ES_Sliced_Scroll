@@ -2,12 +2,12 @@
 
 THREAD=4, GPU=1
 
-# grep THREAD_NUM multi12.cpp
+grep THREAD_NUM multi12.cpp
 <pre>
 #define WORKER_THREAD_NUM 5                                    
 </pre>
 
-# grep GPU_number kernel.cu -rin
+grep GPU_number kernel.cu -rin
 <pre>
 37:    // int GPU_number = thread_id % 4;
 38:    int GPU_number = 0;
