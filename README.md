@@ -2,7 +2,7 @@
 
 <pre>
 #cd ./putSession
-<pre>
+</pre>
 
 modify USR and ADDRESS:
 <pre>
