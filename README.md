@@ -33,17 +33,17 @@ X.X.X.X/24
 Y.Y.Y.Y/28
 </pre>
 
-generator: random session data generator.
+[1] generator: random session data generator.
 
-misc: tester of CUDA Thrust API
+[2] misc: tester of CUDA Thrust API
 
-paralel_exporter: parallel scroll API invocation
+[3] paralel_exporter: parallel scroll API invocation
 
-plot: matplotlib
+[4] plot: matplotlib
 
-putSession: parallel bulk inserter
+[5] putSession: parallel bulk inserter
 
-reduction: histogramming with CUDA Thrust and Intel TBB
+[6] reduction: histogramming with CUDA Thrust and Intel TBB
 
 # [1] Parallel bulk inserter
 
