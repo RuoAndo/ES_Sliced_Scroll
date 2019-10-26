@@ -35,7 +35,7 @@ Y.Y.Y.Y/28
 
 [1] generator: random session data generator.
 
-[2] misc: tester of CUDA Thrust API
+[2] misc: merge scatter and pairwise reduction
 
 [3] paralel_exporter: parallel scroll API invocation
 
