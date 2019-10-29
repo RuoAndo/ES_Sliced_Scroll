@@ -27,7 +27,7 @@ Multi-GPU Accelerated Processing of Time-Series Data of Huge Academic Backbone N
 
 clustering: under testing
 
-discern: direction disrimination (you will need your own IP address list to match)
+direction_discrimination: bitmasking and matching with CUDA Thrust (you will need your own IP address list to match)
 <pre>
 X.X.X.X/24
 Y.Y.Y.Y/28
