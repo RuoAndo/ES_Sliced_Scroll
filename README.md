@@ -171,6 +171,10 @@ You see the error message above. But it might be OK.
 
 # [3] Histogramming with CUDA Thrust
 
+<pre>
+# cd histogramming_by_reduction/gpu/                   
+</pre>
+
 THREAD=4, GPU=1
 
 grep THREAD_NUM multi12.cpp
