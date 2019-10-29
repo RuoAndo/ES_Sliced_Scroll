@@ -19,7 +19,7 @@ Multi-GPU Accelerated Processing of Time-Series Data of Huge Academic Backbone N
 |   |-- conf
 |   |-- ElasticBulk_Data
 |   `-- Output_SessionData
-`-- reduction
+`-- histogramming_by_reduction
     |-- cpu
     |-- gpu
     `-- stl
