@@ -43,7 +43,7 @@ Y.Y.Y.Y/28
 
 [5] putSession: parallel bulk inserter
 
-[6] reduction: histogramming with CUDA Thrust and Intel TBB
+[6] histogramming_by_reduction: histogramming with CUDA Thrust and Intel TBB
 
 # [1] Parallel bulk inserter
 
