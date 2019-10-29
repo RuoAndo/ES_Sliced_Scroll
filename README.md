@@ -25,25 +25,25 @@ Multi-GPU Accelerated Processing of Time-Series Data of Huge Academic Backbone N
     `-- stl
 </pre>
 
-clustering: under testing
+[0] clustering: under testing
 
-direction_discrimination: bitmasking and matching with CUDA Thrust (you will need your own IP address list to match)
+[1] direction_discrimination: bitmasking and matching with CUDA Thrust (you will need your own IP address list to match)
 <pre>
 X.X.X.X/24
 Y.Y.Y.Y/28
 </pre>
 
-[1] generator: random session data generator.
+[2] generator: random session data generator.
 
-[2] misc: merge scatter and pairwise reduction
+[3] misc: merge scatter and pairwise reduction
 
-[3] paralel_exporter: parallel scroll API invocation
+[4] paralel_exporter: parallel scroll API invocation
 
-[4] plot: matplotlib
+[5] plot: matplotlib
 
-[5] putSession: parallel bulk inserter
+[6] putSession: parallel bulk inserter
 
-[6] histogramming_by_reduction: histogramming with CUDA Thrust and Intel TBB
+[7] histogramming_by_reduction: histogramming with CUDA Thrust and Intel TBB
 
 # [1] Parallel bulk inserter
 
