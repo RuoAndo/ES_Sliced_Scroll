@@ -7,7 +7,7 @@ Multi-GPU Accelerated Processing of Time-Series Data of Huge Academic Backbone N
 .
 |-- clustering
 |   `-- gpu
-|-- discern
+|-- direction_discrimination
 |   |-- cpu
 |   `-- gpu
 |-- generator
