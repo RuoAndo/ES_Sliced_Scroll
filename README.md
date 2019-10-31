@@ -57,7 +57,7 @@ Y.Y.Y.Y/28
 1: DIR=$(cd $(dirname $0);pwd)/
 2: 
 3: USR=user_name
-4: ADDRESS=192.168.0.3:9200
+4: ADDRESS=X.X.X.X:9200
 </pre>
 
 1.2: Set password of Elasticsearch:
@@ -145,7 +145,7 @@ You see the error message above. But it might be OK.
  22# Please change these four itmes in your environment
  23USR=user_name
  24PASSWD=password
- 25ADDRESS=192.168.0.3:9200
+ 25ADDRESS=Y.Y.Y.Y:9200
  26INDEXNAME=session_info
 </pre>
 
