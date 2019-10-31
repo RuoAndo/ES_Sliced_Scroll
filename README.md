@@ -200,7 +200,7 @@ grep GPU_number kernel.cu -rin
 
 When you are to change # of GPU to more than one, change GPU_number (kernel.cu).
 
-#[4] Direction discrimination of session data
+# [4] Direction discrimination of session data
 
 You need a list of IP address range such as:
 
