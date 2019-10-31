@@ -200,3 +200,53 @@ grep GPU_number kernel.cu -rin
 
 When you are to change # of GPU to more than one, change GPU_number (kernel.cu).
 
+#[4] Direction discrimination of session data
+
+You need a list of IP address range such as:
+
+<pre>
+Z.Z.Z.Z/24
+W.W.W.W/27
+</pre>
+
+For example, this could be informative:
+<pre>
+https://docs.aws.amazon.com/general/latest/gr/aws-ip-ranges.html
+</pre>
+
+<pre>
+THREAD=32: GPU
+ThreadID26:[125]155(156):X.X.X.X/27 @ 1001//xdw
+time of travdirtime:22944.036000[msec]
+[128]1000000,1000000@ 1001//xdw
+[insertion]          0.478790063 sec
+[tranfering]          0.034528034 sec
+[transform1]          0.000054723 sec
+[transform2]          0.000032898 sec
+[transfer2]          0.207891347 sec
+discern 1 (srcIP)         0.724947175 sec
+[insertion]          0.431377968 sec
+[tranfering]          0.034297542 sec
+[transform1]          0.000039529 sec
+[transform2]          0.000014678 sec
+[transfer2]          0.207339581 sec
+discern 2 (destIP)          0.676383075 sec
+ThreadID19:[128]155(156):Y.Y.Y.Y/24 @ 1001//xbx
+time of travdirtime:22508.867000[msec]
+[129]1000000, 1000000@ 1001//xbx
+total# of files :0
+
+real    297m7.229s
+user    8630m24.783s
+sys     317m1.345s
+
+THREAD=32: CPU
+ThreadID:20[125]155(156):Z.Z.Z.Z/27 155 - 29.708084771 sec @ 1009//xcm
+INGRESS:10000000,EGRESS:10000000, ALL:20000000 @ [126]1009//xcm
+total# of files :0
+
+real    430m51.944s
+user    12655m0.012s
+sys     382m13.561s
+</pre>
+
