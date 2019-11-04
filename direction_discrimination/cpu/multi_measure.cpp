@@ -45,8 +45,8 @@ using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 2
-#define MAX_QUEUE_NUM 9
+#define WORKER_THREAD_NUM 64
+#define MAX_QUEUE_NUM 128
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
 
@@ -81,6 +81,7 @@ typedef struct _thread_arg {
     queue_t* q;
     char* srchstr;
     char* dirname;
+    char* filelist_name;
     int filenum;
 } thread_arg_t;
 
@@ -127,9 +128,11 @@ std::string now_str()
   return buf;
 }
 
+
+/*
 std::vector<size_t> get_cpu_times() {
   std::ifstream proc_stat("/proc/stat");
-  proc_stat.ignore(5, ' '); // Skip the 'cpu' prefix.
+  proc_stat.ignore(5, ' '); 
   std::vector<size_t> times;
   for (size_t time; proc_stat >> time; times.push_back(time));
   return times;
@@ -143,8 +146,9 @@ bool get_cpu_times(size_t &idle_time, size_t &total_time) {
   total_time = std::accumulate(cpu_times.begin(), cpu_times.end(), 0);
   return true;
 }
+*/
 
-int traverse_file(char* filename, int thread_id) {
+int traverse_file(char* filename, char* filelist_name, int thread_id) {
 
 
   int counter = 0;
@@ -157,7 +161,7 @@ int traverse_file(char* filename, int thread_id) {
   
   try {
 
-    const string list_file = "monitoring_list"; 
+    const string list_file = string(filelist_name); 
     vector<vector<string>> list_data; 
     
     const string session_file = string(filename); 
@@ -203,7 +207,7 @@ int traverse_file(char* filename, int thread_id) {
       
       netmask = atoi(rec[1].c_str());
 	    
-      std::cout << addr_counter << "(" << list_data.size() << "):" << argIP << "/" << netmask << std::endl;
+      std::cout << "threadID:" << thread_id << ":" << addr_counter << "(" << list_data.size() << "):" << argIP << "/" << netmask << std::endl;
 	    
       char del2 = '.';
 	    
@@ -512,6 +516,8 @@ void worker_func(thread_arg_t* arg) {
 
     int thread_id = arg->id;
     
+    char* filelist_name = arg->filelist_name;
+    
 #ifdef __CPU_SET
     cpu_set_t mask;    
     __CPU_ZERO(&mask);
@@ -529,7 +535,7 @@ void worker_func(thread_arg_t* arg) {
         if (strncmp(fname, END_MARK_FNAME, END_MARK_FLENGTH + 1) == 0)
             break;
 
-        n = traverse_file(fname, thread_id);
+        n = traverse_file(fname, filelist_name, thread_id);
         pthread_mutex_lock(&result.mutex);
 
         if (n > result.num) {
@@ -552,7 +558,7 @@ void worker_func(thread_arg_t* arg) {
         if (strncmp(fname, END_MARK_FNAME, END_MARK_FLENGTH + 1) == 0)
             break;
 
-        n = traverse_file(fname, thread_id);
+        n = traverse_file(fname, filelist_name, thread_id);
 
         if (n > my_result_num) {
             my_result_num = n;
@@ -608,6 +614,7 @@ int main(int argc, char* argv[]) {
         targ[i].q = &q;
         // targ[i].srchstr = argv[1];
         targ[i].dirname = argv[1];
+	targ[i].filelist_name = argv[2];
         targ[i].filenum = 0;
         targ[i].cpuid = i%cpu_num;
     }
@@ -624,6 +631,7 @@ int main(int argc, char* argv[]) {
     pthread_create(&master, NULL, (void*)master_func, (void*)&targ[0]);
     for (i = 1; i < thread_num; ++i) {
         targ[i].id = i;
+	cout << "thread - " << i << " launched." << endl; 
         pthread_create(&worker[i], NULL, (void*)worker_func, (void*)&targ[i]);
     }
 	
