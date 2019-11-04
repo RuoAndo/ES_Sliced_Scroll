@@ -45,8 +45,8 @@ using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 64
-#define MAX_QUEUE_NUM 128
+#define WORKER_THREAD_NUM 2
+#define MAX_QUEUE_NUM 5
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
 
@@ -207,7 +207,7 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
       
       netmask = atoi(rec[1].c_str());
 	    
-      std::cout << "threadID:" << thread_id << ":" << addr_counter << "(" << list_data.size() << "):" << argIP << "/" << netmask << std::endl;
+      std::cout << "threadID:" << thread_id << ":" << addr_counter << "(" << list_data.size() << "):" << argIP << "/" << netmask << ":" << filename << std::endl;
 	    
       char del2 = '.';
 	    
@@ -321,8 +321,7 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 
     string filename_dst = full_path.string() + "/" + list_string.back() + "_egress";
     cout << filename_dst << endl;
-    
-    /*
+   
     const string file_rendered_outward = session_file + "_egress";
     ofstream outputfile_outward(file_rendered_outward);
     
@@ -353,7 +352,6 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 
     outputfile_inward.close();
     outputfile_outward.close();
-    */
 
 
     /*
@@ -560,12 +558,14 @@ void worker_func(thread_arg_t* arg) {
 
         n = traverse_file(fname, filelist_name, thread_id);
 
+	/*
         if (n > my_result_num) {
             my_result_num = n;
             my_result_len = flen;
             my_result_fname = (char*)alloca(flen);
             strcpy(my_result_fname, fname);
         }
+	*/
     }
     pthread_mutex_lock(&result.mutex);
     if (my_result_num > result.num) {
