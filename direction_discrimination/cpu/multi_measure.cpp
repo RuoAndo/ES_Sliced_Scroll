@@ -45,8 +45,8 @@ using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 31
-#define MAX_QUEUE_NUM 65
+#define WORKER_THREAD_NUM 43
+#define MAX_QUEUE_NUM 85
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
 
@@ -211,7 +211,7 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
       
       netmask = atoi(rec[1].c_str());
 	    
-      std::cout << "threadID:" << thread_id << ":" << addr_counter << "(" << list_data.size() << "):" << argIP << "/"
+      std::cout << "[" << now_str() << "]" << "threadID:" << thread_id << ":" << addr_counter << "(" << list_data.size() << "):" << argIP << "/"
 		<< netmask << ":" << filename << ":" << ingress_counter_global << ":" << egress_counter_global << ":" << miss_counter << std::endl;
 	    
       char del2 = '.';
@@ -646,7 +646,7 @@ int main(int argc, char* argv[]) {
     pthread_create(&master, NULL, (void*)master_func, (void*)&targ[0]);
     for (i = 1; i < thread_num; ++i) {
         targ[i].id = i;
-	cout << "thread - " << i << " launched." << endl; 
+	cout << "[" << now_str() << "]" << " thread - " << i << " launched." << endl; 
         pthread_create(&worker[i], NULL, (void*)worker_func, (void*)&targ[i]);
     }
 	
