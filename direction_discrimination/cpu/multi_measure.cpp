@@ -45,8 +45,8 @@ using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 5
-#define MAX_QUEUE_NUM 13
+#define WORKER_THREAD_NUM 31
+#define MAX_QUEUE_NUM 65
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
 
@@ -55,6 +55,10 @@ static iTbb_Vec_timestamp TbbVec_timestamp;
 
 static int global_counter = 0;
 static double global_duration = 0;
+
+static int ingress_counter_global = 0;
+static int egress_counter_global = 0;
+static int miss_counter = 0;
 
 extern void kernel(long* h_key, long* h_value_1, long* h_value_2, int size);
 
@@ -207,7 +211,8 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
       
       netmask = atoi(rec[1].c_str());
 	    
-      std::cout << "threadID:" << thread_id << ":" << addr_counter << "(" << list_data.size() << "):" << argIP << "/" << netmask << ":" << filename << std::endl;
+      std::cout << "threadID:" << thread_id << ":" << addr_counter << "(" << list_data.size() << "):" << argIP << "/"
+		<< netmask << ":" << filename << ":" << ingress_counter_global << ":" << egress_counter_global << ":" << miss_counter << std::endl;
 	    
       char del2 = '.';
 	    
@@ -223,10 +228,13 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	vector<string> rec2 = session_data[row2];
 
 	if(rec2.size() < 7)
-	  continue;
+	  {
+	    miss_counter++;
+	    continue;
+	  }
 	
-	std::string srcIP = rec2[4];
-	std::string destIP = rec2[7];
+	std::string srcIP = rec2[18];
+	std::string destIP = rec2[8];
 	
 	for(size_t c = srcIP.find_first_of("\""); c != string::npos; c = c = srcIP.find_first_of("\"")){
 	  srcIP.erase(c,1);
@@ -260,6 +268,7 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	      all_line = all_line + "," + *itr;
 	    }
 	    found_flag[row2] = 1;
+	    ingress_counter_global++;
 	  }
 
 	std::string sessionIPstring_2;
@@ -286,6 +295,7 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	      all_line = all_line + "," + *itr;
 	    }
 	    found_flag_2[row2] = 1;
+	    egress_counter_global++;
 	  }
       }
 
@@ -323,6 +333,7 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
     boost::split(list_string, tmp_filename, boost::is_any_of(delim));
     cout << list_string.back() << endl;
 
+    // string filename_dst = full_path.string() + "/" + list_string.back() + "_egress";
     string filename_dst = full_path.string() + "/" + list_string.back() + "_egress";
     cout << filename_dst << endl;
    

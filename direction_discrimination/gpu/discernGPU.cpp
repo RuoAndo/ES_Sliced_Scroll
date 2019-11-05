@@ -57,6 +57,10 @@ static int global_counter = 0;
 static double global_duration = 0;
 static int file_counter = 0;
 
+static int ingress_counter_global = 0;
+static int egress_counter_global = 0;
+static int miss_counter = 0;
+
 extern void kernel(long* h_key, long* h_value_1, long* h_value_2, int size);
 void discern(unsigned long *IPaddress, unsigned long *netmask, unsigned long address_to_match, double *result, size_t data_size, int thread_id);
 
@@ -248,8 +252,15 @@ int traverse_file(char* filename, int thread_id) {
 
       for (unsigned int row2 = 0; row2 < session_data.size(); row2++) {
 	vector<string> rec2 = session_data[row2];
-	std::string srcIP = rec2[4];
-	std::string destIP = rec2[7];
+
+	if(rec2.size() < 7)
+	  {
+	    miss_counter++;
+	    continue;
+	  }
+	    
+	std::string srcIP = rec2[18];
+	std::string destIP = rec2[8];
 	
 	for(size_t c = srcIP.find_first_of("\""); c != string::npos; c = c = srcIP.find_first_of("\"")){
 	  srcIP.erase(c,1);
@@ -298,7 +309,8 @@ int traverse_file(char* filename, int thread_id) {
       sleepTime.tv_nsec = 123;
       
       discern(srcIP_ul, netmask_ul, address_to_match, result, session_data.size(), thread_id);
-      
+
+      /*
       clock_gettime(CLOCK_REALTIME, &endTime);
       printf("discern 1 (srcIP)");
       if (endTime.tv_nsec < startTime.tv_nsec) {
@@ -309,11 +321,15 @@ int traverse_file(char* filename, int thread_id) {
 	       ,endTime.tv_nsec - startTime.tv_nsec);
       }
       printf(" sec\n");
-      
+      */      
+
       for(int i =0; i < session_data.size(); i++)
 	{
 	  if(result[i]==0)
-	    found_flag[i] = 1;
+	    {
+	      found_flag[i] = 1;
+	      ingress_counter_global++;
+	    }
 	}
 
       /* reset */
@@ -326,6 +342,7 @@ int traverse_file(char* filename, int thread_id) {
       
       discern(dstIP_ul, netmask_ul, address_to_match, result, session_data.size(), thread_id);
 
+      /*
       clock_gettime(CLOCK_REALTIME, &endTime);
       printf("discern 2 (destIP) ");
       if (endTime.tv_nsec < startTime.tv_nsec) {
@@ -336,15 +353,20 @@ int traverse_file(char* filename, int thread_id) {
 	       ,endTime.tv_nsec - startTime.tv_nsec);
       }
       printf(" sec\n");
-      
+      */      
+
       for(int i =0; i < session_data.size(); i++)
 	{
 	  if(result[i]==0)
-	    found_flag_2[i] = 1;
+	    {
+	      found_flag_2[i] = 1;
+	      egress_counter_global++;
+	    }
 	}
 
       /* per one list */
-      std::cout << "ThreadID" << thread_id << ":[" << file_counter << "]" << addr_counter << "(" << list_data.size() << "):" << argIP << "/" << netmask << " @ " << filename << std::endl;
+      std::cout << "ThreadID" << thread_id << ":[" << file_counter << "]" << addr_counter << "(" << list_data.size() << "):" << argIP << "/"
+		<< netmask << " @ " << filename << ":" << ingress_counter_global << ":" << egress_counter_global << ":" << miss_counter << std::endl;
       
       travdirtime = stop_timer(&t);
       print_timer(travdirtime);
@@ -662,6 +684,7 @@ int main(int argc, char* argv[]) {
         targ[i].dirname = argv[1];
         targ[i].filenum = 0;
         targ[i].cpuid = i%cpu_num;
+	cout << "threadID" << i << " - launched." << endl;
     }
     result.fname = NULL;
 
