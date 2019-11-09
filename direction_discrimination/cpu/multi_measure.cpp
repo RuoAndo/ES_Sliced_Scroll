@@ -45,8 +45,8 @@ using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 43
-#define MAX_QUEUE_NUM 85
+#define WORKER_THREAD_NUM 2
+#define MAX_QUEUE_NUM 17
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
 
@@ -227,14 +227,14 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
       for (unsigned int row2 = 0; row2 < session_data.size(); row2++) {
 	vector<string> rec2 = session_data[row2];
 
-	if(rec2.size() < 7)
+	if(rec2.size() < 34)
 	  {
 	    miss_counter++;
 	    continue;
 	  }
-	
-	std::string srcIP = rec2[18];
-	std::string destIP = rec2[8];
+   
+	std::string srcIP = rec2[34];
+	std::string destIP = rec2[26];
 	
 	for(size_t c = srcIP.find_first_of("\""); c != string::npos; c = c = srcIP.find_first_of("\"")){
 	  srcIP.erase(c,1);
