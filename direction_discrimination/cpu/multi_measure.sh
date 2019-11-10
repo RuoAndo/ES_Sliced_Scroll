@@ -2,6 +2,9 @@ date=$(date -d '1 day ago' "+%Y%m%d")
 echo $date
 REGION_NAME="eu-west-1"
 
+mkdir ingress
+mkdir egress
+
 ./build.sh multi_measure
 
 echo "copying..."
