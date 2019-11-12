@@ -1,6 +1,12 @@
 date=$(date -d '1 day ago' "+%Y%m%d")
 echo $date
-REGION_NAME="eu-west-1"
+REGION_NAME=$1
+
+if [ "$1" = "" ]
+then
+    echo "usage: ./multi_measure.sh [REGION_NAME]"
+    exit 1
+fi
 
 mkdir ingress
 mkdir egress
