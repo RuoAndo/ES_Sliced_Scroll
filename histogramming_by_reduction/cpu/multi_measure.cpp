@@ -41,8 +41,8 @@ using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 9
-#define MAX_QUEUE_NUM 27
+#define WORKER_THREAD_NUM 33
+#define MAX_QUEUE_NUM 97
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
 
@@ -155,10 +155,9 @@ int traverse_file(char* filename, int thread_id) {
     clock_t start = clock();
     
     // printf("threadID:%d:%d:%s \n", thread_id, global_counter, filename);
-    /*
-    std::cout << "threadID:" << thread_id << ",fileNo:" << global_counter << ", [" << now_str()
-	      << "] ," << filename << std::endl;
-    */
+  
+    std::cout << "[" << now_str() << "] " "threadID:" << thread_id << ",fileNo:" << global_counter << ","
+	      << filename << std::endl;
 
     gettimeofday(&tv, NULL);
 
@@ -188,13 +187,20 @@ int traverse_file(char* filename, int thread_id) {
     value_out = (long *)malloc(vBytes);
 
     int new_size = 0;
+    int line_counter = 0;
     
     start_timer(&t);    
     for (unsigned int row = 0; row < data.size(); row++)
       {
 	std::vector<string> rec = data[row];
 
-	std::string tms = rec[0];
+	if(line_counter == 0)
+	  {
+	    line_counter++;
+	    continue;
+	  }
+	    
+	std::string tms = rec[37];
 	
 	for(size_t c = tms.find_first_of("\""); c != string::npos; c = c = tms.find_first_of("\"")){
     	      tms.erase(c,1);
@@ -219,7 +225,8 @@ int traverse_file(char* filename, int thread_id) {
 	// key[row] = stoull(tms);
 	// value[row] = 1;
 
-	std::string bytes = rec[20];
+	// std::string bytes = rec[20];
+	std::string bytes = "1";
 
 	for(size_t c = bytes.find_first_of("\""); c != string::npos; c = c = bytes.find_first_of("\"")){
 	  bytes.erase(c,1);
@@ -257,6 +264,7 @@ int traverse_file(char* filename, int thread_id) {
 	// counter++;
 	
 	// tms->second += 1;
+	line_counter++;
 	global_counter++;    
       }
    
@@ -506,6 +514,7 @@ int main(int argc, char* argv[]) {
     pthread_create(&master, NULL, (void*)master_func, (void*)&targ[0]);
     for (i = 1; i < thread_num; ++i) {
         targ[i].id = i;
+	std::cout << "threadID:" << i << " - launched" << std::endl;
         pthread_create(&worker[i], NULL, (void*)worker_func, (void*)&targ[i]);
     }
 	
