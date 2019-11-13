@@ -1,6 +1,5 @@
 date=$(date -d '2 day ago' "+%Y%m%d")
 echo $date
-REGION_NAME="sinet"
 
 #/mnt/data/Usenix_LISA19/direction_discrimination/cpu/20191108_egress_sinet
 
@@ -15,9 +14,12 @@ cp -r /mnt/data/Usenix_LISA19/direction_discrimination/cpu/sinet_ingress_${date}
 
 echo "timestamp, count" > tmp
 cat tmp-counts >> tmp
-cp tmp egress_reduced/${date}_egress_sinet
+cp tmp ./sinet_ingress/${date}_ingress_sinet
+rm -rf tmp
+rm -rf ./sinet_ingress/tmp
 
-./build.sh multi_measure
+#######
+
 echo "copying..."
 cp -r /mnt/data/Usenix_LISA19/direction_discrimination/cpu/sinet_egress_${date} .
 
@@ -25,6 +27,8 @@ cp -r /mnt/data/Usenix_LISA19/direction_discrimination/cpu/sinet_egress_${date} 
 
 echo "timestamp, count" > tmp
 cat tmp-counts >> tmp
-cp tmp ingress_reduced/${date}_ingress_sinet 
+cp tmp ./sinet_egress/${date}_egress_sinet 
+rm -rf tmp
+rm -rf ./sinet_egress/tmp
 
 #rm -rf ${date}
