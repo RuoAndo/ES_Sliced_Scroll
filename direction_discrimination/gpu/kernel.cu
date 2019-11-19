@@ -34,7 +34,6 @@ string now() {
 
 void discern(unsigned long *IPaddress, unsigned long *netmask, unsigned long address_to_match, double *result, size_t data_size, int thread_id)
 {
-    // int GPU_number = thread_id % 1;
     int GPU_number = 0;
     cudaSetDevice(GPU_number);
 
@@ -43,14 +42,6 @@ void discern(unsigned long *IPaddress, unsigned long *netmask, unsigned long add
     clock_gettime(CLOCK_REALTIME, &startTime);
     sleepTime.tv_sec = 0;
     sleepTime.tv_nsec = 123;
-
-    // thrust::host_vector<double> IPaddress_hv(data_size);
-    /*
-    thrust::host_vector<double> netmask_hv(data_size);
-    thrust::host_vector<double> masked_IPaddress_hv(data_size);
-    thrust::host_vector<double> address_to_match_hv(data_size);
-    thrust::host_vector<double> result_hv(data_size);
-    */
 
     thrust::host_vector<double> IPaddress_hv(IPaddress, IPaddress + data_size);
     thrust::host_vector<double> netmask_hv(netmask, netmask + data_size);
@@ -61,83 +52,19 @@ void discern(unsigned long *IPaddress, unsigned long *netmask, unsigned long add
     thrust::host_vector<double> masked_IPaddress_hv(data_size);
     thrust::fill(masked_IPaddress_hv.begin(), masked_IPaddress_hv.end(), 0);
 
-    /*
-    for(int i=0; i < data_size; i++)
-    {
-	IPaddress_hv[i] = (double)IPaddress[i];
-	netmask_hv[i] = (double)netmask[i];
-	masked_IPaddress_hv[i] = 0;
-	address_to_match_hv[i] = (double)address_to_match;
-	result_hv[i] = (double)result[i];
-    }
-    */
-
-    clock_gettime(CLOCK_REALTIME, &endTime);
-    printf("[insertion] ");
-    if (endTime.tv_nsec < startTime.tv_nsec) {
-       printf("%10ld.%09ld", endTime.tv_sec - startTime.tv_sec - 1 ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
-    } else {
-       printf("%10ld.%09ld", endTime.tv_sec - startTime.tv_sec, endTime.tv_nsec - startTime.tv_nsec);
-    }
-    printf(" sec\n");
-
-    clock_gettime(CLOCK_REALTIME, &startTime);
-    sleepTime.tv_sec = 0;
-    sleepTime.tv_nsec = 123;
-
     thrust::device_vector<double> IPaddress_dv = IPaddress_hv;
     thrust::device_vector<double> netmask_dv = netmask_hv;
     thrust::device_vector<double> masked_IPaddress_dv = masked_IPaddress_hv;
     thrust::device_vector<double> address_to_match_dv = address_to_match_hv;
     thrust::device_vector<double> result_dv = result_hv;
 
-    clock_gettime(CLOCK_REALTIME, &endTime);
-    printf("[tranfering] ");
-    if (endTime.tv_nsec < startTime.tv_nsec) {
-       printf("%10ld.%09ld", endTime.tv_sec - startTime.tv_sec - 1 ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
-    } else {
-       printf("%10ld.%09ld", endTime.tv_sec - startTime.tv_sec, endTime.tv_nsec - startTime.tv_nsec);
-    }
-    printf(" sec\n");
-
-    clock_gettime(CLOCK_REALTIME, &startTime);
-    sleepTime.tv_sec = 0;
-    sleepTime.tv_nsec = 123;
-
     thrust::transform(IPaddress_dv.begin(), IPaddress_dv.end(),
     		      netmask_dv.begin(), masked_IPaddress_dv.begin(),
 		      thrust::bit_and<unsigned long>());
 		      
-    clock_gettime(CLOCK_REALTIME, &endTime);
-    printf("[transform1] ");
-    if (endTime.tv_nsec < startTime.tv_nsec) {
-       printf("%10ld.%09ld", endTime.tv_sec - startTime.tv_sec - 1 ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
-    } else {
-       printf("%10ld.%09ld", endTime.tv_sec - startTime.tv_sec, endTime.tv_nsec - startTime.tv_nsec);
-    }
-    printf(" sec\n");
-
-    // thrust::equal<double> op;
-
-    clock_gettime(CLOCK_REALTIME, &startTime);
-    sleepTime.tv_sec = 0;
-    sleepTime.tv_nsec = 123;
     thrust::transform(masked_IPaddress_dv.begin(), masked_IPaddress_dv.end(),
     		      address_to_match_dv.begin(), result_dv.begin(),
 		      thrust::minus<double>());
-    clock_gettime(CLOCK_REALTIME, &endTime);
-    printf("[transform2] ");
-    if (endTime.tv_nsec < startTime.tv_nsec) {
-       printf("%10ld.%09ld", endTime.tv_sec - startTime.tv_sec - 1 ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
-    } else {
-       printf("%10ld.%09ld", endTime.tv_sec - startTime.tv_sec, endTime.tv_nsec - startTime.tv_nsec);
-    }
-    printf(" sec\n");
-
-
-    clock_gettime(CLOCK_REALTIME, &startTime);
-    sleepTime.tv_sec = 0;
-    sleepTime.tv_nsec = 123;
     
     thrust::host_vector<double> result_hv_2(data_size);
     thrust::copy(result_dv.begin(), result_dv.end(),result_hv_2.begin());
@@ -146,15 +73,6 @@ void discern(unsigned long *IPaddress, unsigned long *netmask, unsigned long add
     {
     	result[i] =  result_hv_2[i];
     }
-
-    clock_gettime(CLOCK_REALTIME, &endTime);
-    printf("[transfer2] ");
-    if (endTime.tv_nsec < startTime.tv_nsec) {
-       printf("%10ld.%09ld", endTime.tv_sec - startTime.tv_sec - 1 ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
-    } else {
-       printf("%10ld.%09ld", endTime.tv_sec - startTime.tv_sec, endTime.tv_nsec - startTime.tv_nsec);
-    }
-    printf(" sec\n");
 }
 
 void sort(unsigned long long *key, long *value, unsigned long long *key_out, long *value_out, int kBytes, int vBytes, size_t data_size, int thread_id)

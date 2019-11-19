@@ -214,7 +214,7 @@ int traverse_file(char* filename, int thread_id) {
 
       egress_counter = 0;
 
-      start_timer(&t);
+      // start_timer(&t);
       
       netmask = atoi(rec[1].c_str());
 	    
@@ -259,8 +259,8 @@ int traverse_file(char* filename, int thread_id) {
 	    continue;
 	  }
 	    
-	std::string srcIP = rec2[18];
-	std::string destIP = rec2[8];
+	std::string srcIP = rec2[34];
+	std::string destIP = rec2[26];
 	
 	for(size_t c = srcIP.find_first_of("\""); c != string::npos; c = c = srcIP.find_first_of("\"")){
 	  srcIP.erase(c,1);
@@ -365,11 +365,12 @@ int traverse_file(char* filename, int thread_id) {
 	}
 
       /* per one list */
-      std::cout << "ThreadID" << thread_id << ":[" << file_counter << "]" << addr_counter << "(" << list_data.size() << "):" << argIP << "/"
+      std::cout << "[" << now_str() << "] " << "ThreadID" << thread_id << ":[" << file_counter << "]" << addr_counter
+		<< "(" << list_data.size() << "):" << argIP << "/"
 		<< netmask << " @ " << filename << ":" << ingress_counter_global << ":" << egress_counter_global << ":" << miss_counter << std::endl;
       
-      travdirtime = stop_timer(&t);
-      print_timer(travdirtime);
+      // travdirtime = stop_timer(&t);
+      // print_timer(travdirtime);
 
       addr_counter++;
 
@@ -755,7 +756,7 @@ int main(int argc, char* argv[]) {
     }
     outputfile.close();
 
-
+    cout << "FINISHED: " << ingress_counter_global << ":" << egress_counter_global << endl;
     
     return 0;
 }
