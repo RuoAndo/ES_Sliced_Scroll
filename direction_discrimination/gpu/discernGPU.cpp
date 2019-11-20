@@ -400,7 +400,6 @@ int traverse_file(char* filename, int thread_id) {
     file_counter++;
     cout << "[" << file_counter << "]" << counter_flag << "," << counter_flag_2 << " @ " << filename << endl;
 
-    /*
     const string file_rendered_egress = session_file + "_egress";
     ofstream outputfile_egress(file_rendered_egress);
     
@@ -417,34 +416,12 @@ int traverse_file(char* filename, int thread_id) {
 	}
     }
     outputfile_egress.close();
-    */    
 
-    
-    // cout << "egress:" << egress_counter << endl;
+    const string file_rendered_ingress = session_file + "_ingress";
+    ofstream outputfile_ingress(file_rendered_ingress);
 
-    /*
-    outputfile_inward.close();
-    outputfile_outward.close();
-    */  
-
-    /*
-    const string file_rendered_outward = session_file + "_egress";
-    ofstream outputfile_outward(file_rendered_outward);
-	  
-    const string file_rendered_inward = session_file + "_ingress";
-    ofstream outputfile_inward(file_rendered_inward);
-    
     for (unsigned int row3 = 0; row3 < session_data.size(); row3++) {
       vector<string> rec3 = session_data[row3];
-      if(found_flag[row3]==1)
-	{
-	  std::string all_line;
-	  all_line = "1";
-	  for(auto itr = rec3.begin(); itr != rec3.end(); ++itr) {
-	    all_line = all_line + "," + *itr;
-	  }
-	  outputfile_outward << all_line << std::endl;
-	}
       if(found_flag_2[row3]==1)
 	{
 	  std::string all_line;
@@ -452,14 +429,11 @@ int traverse_file(char* filename, int thread_id) {
 	  for(auto itr = rec3.begin(); itr != rec3.end(); ++itr) {
 	    all_line = all_line + "," + *itr;
 	  }
-	  outputfile_inward << all_line << std::endl;
-	}	
+	  outputfile_ingress << all_line << std::endl;
+	}
     }
-    
-    outputfile_inward.close();
-    outputfile_outward.close();
-    */
-    
+    outputfile_ingress.close();
+  	 
     return 0;
   }
     
