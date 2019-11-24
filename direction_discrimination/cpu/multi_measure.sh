@@ -11,10 +11,13 @@ fi
 mkdir ingress
 mkdir egress
 
+#mkdir ingress_${date}
+#mkdir egress_${date}
+
 ./build.sh multi_measure
 
 echo "copying..."
-time cp -r /data1/${date} .
+time cp -r /mnt/data/${date} .
 time ./multi_measure $date list-${REGION_NAME}
 
 ls ./${date}/*ingress > list
@@ -25,6 +28,7 @@ while read line; do
     cat header > tmp
     cat ${fn_src} >> tmp
     echo "./ingress/${REGION_NAME}_${fn_dst}_${date}"
+    #cp tmp ./ingress_${date}/${REGION_NAME}_${fn_dst}_${date}
     mv tmp ./ingress/${REGION_NAME}_${fn_dst}_${date}
 done < list
 
@@ -36,6 +40,7 @@ while read line; do
     cat header > tmp
     cat ${fn_src} >> tmp
     echo "./egress/${REGION_NAME}_${fn_dst}_${date}"
+    #cp tmp ./egress_${date}/${REGION_NAME}_${fn_dst}_${date}
     mv tmp ./egress/${REGION_NAME}_${fn_dst}_${date}
 done < list
 
