@@ -49,3 +49,4 @@ while read line; do
     #mv tmp ./egress/${REGION_NAME}_${fn_dst}_${date}
 done < list
 
+rm -rf ${date}
