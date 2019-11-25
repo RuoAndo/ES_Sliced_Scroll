@@ -8,8 +8,11 @@ then
     exit 1
 fi
 
-mkdir ingress
-mkdir egress
+#mkdir ingress
+#mkdir egress
+
+mkdir ingress_${REGION_NAME}
+mkdir egress_${REGION_NAME}
 
 mkdir ingress_${REGION_NAME}_${date}
 mkdir egress_${REGION_NAME}_${date}
@@ -29,7 +32,8 @@ while read line; do
     cat ${fn_src} >> tmp
     echo "./ingress/${REGION_NAME}_${fn_dst}_${date}"
     cp tmp ./ingress_${REGION_NAME}_${date}/${REGION_NAME}_${fn_dst}_${date}
-    mv tmp ./ingress/${REGION_NAME}_${fn_dst}_${date}
+    mv tmp ./ingress_${REGION_NAME}/${REGION_NAME}_${fn_dst}_${date}
+    #mv tmp ./ingress/${REGION_NAME}_${fn_dst}_${date}
 done < list
 
 ls ./${date}/*egress > list
@@ -41,6 +45,7 @@ while read line; do
     cat ${fn_src} >> tmp
     echo "./egress/${REGION_NAME}_${fn_dst}_${date}"
     cp tmp ./egress_${REGION_NAME}_${date}/${REGION_NAME}_${fn_dst}_${date}
-    mv tmp ./egress/${REGION_NAME}_${fn_dst}_${date}
+    mv tmp ./egress_${REGION_NAME}/${REGION_NAME}_${fn_dst}_${date}
+    #mv tmp ./egress/${REGION_NAME}_${fn_dst}_${date}
 done < list
 
