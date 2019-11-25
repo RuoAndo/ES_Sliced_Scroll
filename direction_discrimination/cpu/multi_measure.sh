@@ -1,4 +1,4 @@
-date=$(date -d '1 day ago' "+%Y%m%d")
+date=$(date -d '2 day ago' "+%Y%m%d")
 echo $date
 REGION_NAME=$1
 
@@ -44,3 +44,4 @@ while read line; do
     mv tmp ./egress/${REGION_NAME}_${fn_dst}_${date}
 done < list
 
+rm -rf ${date}
