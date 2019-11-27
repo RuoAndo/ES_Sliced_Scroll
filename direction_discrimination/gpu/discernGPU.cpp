@@ -690,7 +690,7 @@ int main(int argc, char* argv[]) {
     // cout << global_counter << endl;
     // printf("avg:%10f\n", avg);
 
-    printf("total# of files :%d\n", global_counter);
+    // printf("total# of files :%d\n", global_counter);
     //cout << "[insertion]avg time for insertion:" << avg << endl;
     
     // printf("[insertion]total duration time insertion:%f\n", global_duration);
