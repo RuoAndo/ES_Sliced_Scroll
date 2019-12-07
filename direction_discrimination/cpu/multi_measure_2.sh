@@ -58,3 +58,5 @@ run_time=$((end_time - start_time))
 run_time_minutes=`echo $(( ${run_time} / 60))`
 
 echo "ELAPSED TIME:"${REGION_NAME}":"${date}":"$run_time":"$run_time_minutes
+scp egress_${REGION_NAME}_${date} 192.168.72.5:/mnt/sdd/nii-socs
+scp ingress_${REGION_NAME}_${date} 192.168.72.5:/mnt/sdd/nii-socs
