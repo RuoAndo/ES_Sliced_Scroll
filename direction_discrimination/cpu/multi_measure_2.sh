@@ -22,7 +22,7 @@ mkdir egress_${REGION_NAME}_${date}
 ./build.sh multi_measure
 
 echo "copying..."
-time cp -r /mnt/data/${date} .
+time cp -r /data1/${date} .
 time ./multi_measure $date list-${REGION_NAME}
 
 ls ./${date}/*ingress > list
@@ -57,4 +57,4 @@ end_time=`date +%s`
 run_time=$((end_time - start_time))
 run_time_minutes=`echo $(( ${run_time} / 60))`
 
-echo "ELAPSED TIME:"${date}":"$run_time":"$run_time_minutes
+echo "ELAPSED TIME:"${REGION_NAME}":"${date}":"$run_time":"$run_time_minutes
