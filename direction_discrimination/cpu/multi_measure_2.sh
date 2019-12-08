@@ -22,7 +22,7 @@ mkdir egress_${REGION_NAME}_${date}
 ./build.sh multi_measure
 
 echo "copying..."
-time cp -r /mnt/data/${date} .
+time cp -r /mnt/sdd/blaze/${date} .
 time ./multi_measure $date list-${REGION_NAME}
 
 ls ./${date}/*ingress > list
@@ -58,5 +58,5 @@ run_time=$((end_time - start_time))
 run_time_minutes=`echo $(( ${run_time} / 60))`
 
 echo "ELAPSED TIME:"${REGION_NAME}":"${date}":"$run_time":"$run_time_minutes
-scp egress_${REGION_NAME}_${date} 192.168.72.5:/mnt/sdd/nii-socs/
-scp ingress_${REGION_NAME}_${date} 192.168.72.5:/mnt/sdd/nii-socs/
+scp -r egress_${REGION_NAME}_${date} 192.168.72.5:/mnt/sdd/nii-socs/
+scp -r ingress_${REGION_NAME}_${date} 192.168.72.5:/mnt/sdd/nii-socs/
