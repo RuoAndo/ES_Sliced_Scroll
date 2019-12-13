@@ -211,8 +211,9 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
       
       netmask = atoi(rec[1].c_str());
 	    
-      std::cout << "[" << now_str() << "]" << "threadID:" << thread_id << ":" << addr_counter << "(" << list_data.size() << "):" << argIP << "/"
-		<< netmask << ":" << filename << ":" << ingress_counter_global << ":" << egress_counter_global << ":" << miss_counter << std::endl;
+      std::cout << "[" << now_str() << "]" << "threadID:" << thread_id << ":" << list_file << ":" << addr_counter << "(" << list_data.size() << "):"
+		<< argIP << "/" << netmask << ":" << filename << ":" << ingress_counter_global << ":" << egress_counter_global
+		<< ":" << miss_counter << std::endl;
 	    
       char del2 = '.';
 	    
