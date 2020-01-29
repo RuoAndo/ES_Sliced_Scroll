@@ -228,6 +228,9 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
       for (unsigned int row2 = 0; row2 < session_data.size(); row2++) {
 	vector<string> rec2 = session_data[row2];
 
+	if(row2 == 0)
+	  continue;
+	
 	if(rec2.size() < 34)
 	  {
 	    miss_counter++;
