@@ -45,7 +45,7 @@ using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 25
+#define WORKER_THREAD_NUM 49
 #define MAX_QUEUE_NUM 128
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
@@ -260,8 +260,8 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
 	    continue;
 	  }
 	    
-	std::string srcIP = rec2[34];
-	std::string destIP = rec2[26];
+	std::string srcIP = rec2[27];
+	std::string destIP = rec2[20];
 	
 	for(size_t c = srcIP.find_first_of("\""); c != string::npos; c = c = srcIP.find_first_of("\"")){
 	  srcIP.erase(c,1);
