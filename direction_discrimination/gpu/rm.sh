@@ -1,7 +1,7 @@
-RMDATE=`date --date '3 day ago' +%Y%m%d`
+RMDATE=`date --date '4 day ago' +%Y%m%d`
 echo $RMDATE
 rm -rf *_${RMDATE}
-fm -rf echo $RMDATE
+rm -rf $RMDATE
 
 #if [[ ! -e $RMDATE ]]; then
 #  echo "OK:"$RMDATE
