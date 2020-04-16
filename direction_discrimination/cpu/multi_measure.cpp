@@ -271,7 +271,7 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	    for(auto itr = rec2.begin(); itr != rec2.end(); ++itr) {
 	      all_line = all_line + "," + *itr;
 	    }
-	    found_flag[row2] = 1;
+	    found_flag_2[row2] = 1;
 	    ingress_counter_global++;
 	  }
 
@@ -298,7 +298,7 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	    for(auto itr = rec2.begin(); itr != rec2.end(); ++itr) {
 	      all_line = all_line + "," + *itr;
 	    }
-	    found_flag_2[row2] = 1;
+	    found_flag[row2] = 1;
 	    egress_counter_global++;
 	  }
       }
