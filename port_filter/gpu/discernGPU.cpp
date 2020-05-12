@@ -46,7 +46,7 @@ using namespace tbb;
 
 // 2 / 1024
 #define WORKER_THREAD_NUM 17
-#define MAX_QUEUE_NUM 91
+#define MAX_QUEUE_NUM 128
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
 
@@ -55,12 +55,14 @@ static iTbb_Vec_timestamp TbbVec_timestamp;
 
 static int global_counter = 0;
 static double global_duration = 0;
+static int file_counter = 0;
 
 static int ingress_counter_global = 0;
 static int egress_counter_global = 0;
 static int miss_counter = 0;
 
 extern void kernel(long* h_key, long* h_value_1, long* h_value_2, int size);
+void discern(unsigned long *IPaddress, unsigned long *netmask, unsigned long address_to_match, double *result, size_t data_size, int thread_id);
 
 typedef struct _result {
     int num;
@@ -85,7 +87,7 @@ typedef struct _thread_arg {
     queue_t* q;
     char* srchstr;
     char* dirname;
-    char* filelist_name;
+    char* fname_list;
     int filenum;
 } thread_arg_t;
 
@@ -132,11 +134,9 @@ std::string now_str()
   return buf;
 }
 
-
-/*
 std::vector<size_t> get_cpu_times() {
   std::ifstream proc_stat("/proc/stat");
-  proc_stat.ignore(5, ' '); 
+  proc_stat.ignore(5, ' '); // Skip the 'cpu' prefix.
   std::vector<size_t> times;
   for (size_t time; proc_stat >> time; times.push_back(time));
   return times;
@@ -150,22 +150,28 @@ bool get_cpu_times(size_t &idle_time, size_t &total_time) {
   total_time = std::accumulate(cpu_times.begin(), cpu_times.end(), 0);
   return true;
 }
-*/
 
-int traverse_file(char* filename, char* filelist_name, int thread_id) {
+int traverse_file(char* filename, char* filename_list, int thread_id) {
 
 
   int counter = 0;
   int addr_counter = 0;
+  int egress_counter = 0;
+  int in_counter = 0;
   
   // int N = atoi(argv[3]);  
   int netmask;
   std::map <int,int> found_flag;
   std::map <int,int> found_flag_2;
+
+  struct timespec startTime, endTime, sleepTime;
+  unsigned int t, travdirtime;
+
+  std::string destPort2;
   
   try {
 
-    const string list_file = string(filelist_name); 
+    const string list_file = string(filename_list);
     vector<vector<string>> list_data; 
     
     const string session_file = string(filename); 
@@ -208,12 +214,14 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
       vector<string> rec = list_data[row];
       const string argIP = rec[0]; 
       std::string argIPstring;
+
+      egress_counter = 0;
+
+      // start_timer(&t);
       
       netmask = atoi(rec[1].c_str());
 	    
-      std::cout << "[" << now_str() << "]" << "threadID:" << thread_id << ":" << list_file << ":" << addr_counter << "(" << list_data.size() << "):"
-		<< argIP << "/" << netmask << ":" << filename << ":" << ingress_counter_global << ":" << egress_counter_global
-		<< ":" << miss_counter << std::endl;
+      // std::cout << addr_counter << "(" << list_data.size() << "):" << argIP << "/" << netmask << std::endl;
 	    
       char del2 = '.';
 	    
@@ -222,23 +230,41 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	ipaddr_src = atol(subStr.c_str());
 	std::bitset<8> trans =  std::bitset<8>(ipaddr_src);
 	std::string trans_string = trans.to_string();
-	      argIPstring = argIPstring + trans_string;
+	argIPstring = argIPstring + trans_string;
       }
-	    
+
+      std::bitset<32> argIP_bitset = std::bitset<32>(stoul(argIPstring,0,2));
+      unsigned long address_to_match = argIP_bitset.to_ulong();
+
+      /* allocate */
+      size_t sBytes = session_data.size() * sizeof(unsigned long);
+      unsigned long *srcIP_ul;
+      srcIP_ul = (unsigned long *)malloc(sBytes);
+
+      size_t dBytes = session_data.size() * sizeof(unsigned long);
+      unsigned long *dstIP_ul;
+      dstIP_ul = (unsigned long *)malloc(dBytes);
+
+      size_t mBytes = session_data.size() * sizeof(unsigned long);
+      unsigned long *netmask_ul;
+      netmask_ul = (unsigned long *)malloc(mBytes);
+
+      size_t rBytes = session_data.size() * sizeof(double);
+      double *result;
+      result = (double *)malloc(rBytes);
+
       for (unsigned int row2 = 0; row2 < session_data.size(); row2++) {
 	vector<string> rec2 = session_data[row2];
 
-	if(row2 == 0)
-	  continue;
-	
-	if(rec2.size() < 34)
+	if(rec2.size() < 7)
 	  {
 	    miss_counter++;
 	    continue;
 	  }
-   
+	    
 	std::string srcIP = rec2[27];
 	std::string destIP = rec2[20];
+	std::string destPort = rec2[19]; 
 	
 	for(size_t c = srcIP.find_first_of("\""); c != string::npos; c = c = srcIP.find_first_of("\"")){
 	  srcIP.erase(c,1);
@@ -247,105 +273,150 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	for(size_t c = destIP.find_first_of("\""); c != string::npos; c = c = destIP.find_first_of("\"")){
 	  destIP.erase(c,1);
 	}
-				
-	std::string sessionIPstring;
+
+        for(size_t c = destPort.find_first_of("\""); c != string::npos; c = c = destPort.find_first_of("\"")){
+	  destPort.erase(c,1);
+	  destPort2 = destPort;
+	}     
+	
+	std::string srcIPstring;
 	for (const auto subStr : split_string_2(srcIP, del2)) {
 	  unsigned long ipaddr_src;
 	  ipaddr_src = atol(subStr.c_str());
 	  std::bitset<8> trans =  std::bitset<8>(ipaddr_src);
 	  std::string trans_string = trans.to_string();
-	  sessionIPstring = sessionIPstring + trans_string;
+	  srcIPstring = srcIPstring + trans_string;
 	}
-		
-	std::bitset<32> bit_argIP(argIPstring);
-	std::bitset<32> bit_sessionIP(sessionIPstring);
-	
-	std::bitset<32> trans2(0xFFFFFFFF);
-	trans2 <<= netmask;
-	bit_sessionIP &= trans2;
-	
-	if(bit_sessionIP == bit_argIP)
-	  {
-	    std::string all_line;
-	    all_line = "1";
-	    for(auto itr = rec2.begin(); itr != rec2.end(); ++itr) {
-	      all_line = all_line + "," + *itr;
-	    }
-	    found_flag_2[row2] = 1;
-	    ingress_counter_global++;
-	  }
 
-	std::string sessionIPstring_2;
+	std::bitset<32> srcIP_bitset = std::bitset<32>(stoul(srcIPstring,0,2));
+	// cout << srcIP_bitset.to_ulong() << endl;
+	srcIP_ul[row2] = srcIP_bitset.to_ulong();
+
+	std::string dstIPstring;
 	for (const auto subStr : split_string_2(destIP, del2)) {
-	  unsigned long ipaddr_dest;
-	  ipaddr_dest = atol(subStr.c_str());
-	  std::bitset<8> trans =  std::bitset<8>(ipaddr_dest);
+	  unsigned long ipaddr_src;
+	  ipaddr_src = atol(subStr.c_str());
+	  std::bitset<8> trans =  std::bitset<8>(ipaddr_src);
 	  std::string trans_string = trans.to_string();
-	  sessionIPstring_2 = sessionIPstring_2 + trans_string;
+	  dstIPstring = dstIPstring + trans_string;
 	}
-		
-	std::bitset<32> bit_argIP_2(argIPstring);
-	std::bitset<32> bit_sessionIP_2(sessionIPstring_2);
-	
-	std::bitset<32> trans2_2(0xFFFFFFFF);
-	trans2_2 <<= netmask;
-	bit_sessionIP_2 &= trans2_2;
-	
-	if(bit_sessionIP_2 == bit_argIP_2)
-	  {
-	    std::string all_line;
-	    all_line = "0";
-	    for(auto itr = rec2.begin(); itr != rec2.end(); ++itr) {
-	      all_line = all_line + "," + *itr;
-	    }
-	    found_flag[row2] = 1;
-	    egress_counter_global++;
-	  }
+
+	std::bitset<32> dstIP_bitset = std::bitset<32>(stoul(dstIPstring,0,2));
+	dstIP_ul[row2] = dstIP_bitset.to_ulong();
+
+	std::bitset<32> trans2(0xFFFFFFFF);
+	trans2 <<= 32 - netmask;
+	netmask_ul[row2] = trans2.to_ulong();
       }
+      
+      /* reset */
+      for(int i =0; i < session_data.size(); i++)
+	  result[i]=1;
+
+      clock_gettime(CLOCK_REALTIME, &startTime);
+      sleepTime.tv_sec = 0;
+      sleepTime.tv_nsec = 123;
+      
+      discern(srcIP_ul, netmask_ul, address_to_match, result, session_data.size(), thread_id);
+
+      /*
+      clock_gettime(CLOCK_REALTIME, &endTime);
+      printf("discern 1 (srcIP)");
+      if (endTime.tv_nsec < startTime.tv_nsec) {
+	printf("%10ld.%09ld", endTime.tv_sec - startTime.tv_sec - 1
+	       ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
+      } else {
+	printf("%10ld.%09ld", endTime.tv_sec - startTime.tv_sec
+	       ,endTime.tv_nsec - startTime.tv_nsec);
+      }
+      printf(" sec\n");
+      */      
+
+      for(int i =0; i < session_data.size(); i++)
+	{
+	  if(result[i]==0)
+	    {
+	      if(atoi(destPort2.c_str()) == 80)
+		{
+		  found_flag[i] = 1;
+		  ingress_counter_global++;
+		}
+	    }
+	}
+
+      /* reset */
+      for(int i =0; i < session_data.size(); i++)
+	  result[i]=1;
+
+      clock_gettime(CLOCK_REALTIME, &startTime);
+      sleepTime.tv_sec = 0;
+      sleepTime.tv_nsec = 123;
+      
+      discern(dstIP_ul, netmask_ul, address_to_match, result, session_data.size(), thread_id);
+
+      /*
+      clock_gettime(CLOCK_REALTIME, &endTime);
+      printf("discern 2 (destIP) ");
+      if (endTime.tv_nsec < startTime.tv_nsec) {
+	printf("%10ld.%09ld", endTime.tv_sec - startTime.tv_sec - 1
+	       ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
+      } else {
+	printf("%10ld.%09ld", endTime.tv_sec - startTime.tv_sec
+	       ,endTime.tv_nsec - startTime.tv_nsec);
+      }
+      printf(" sec\n");
+      */      
+
+      for(int i =0; i < session_data.size(); i++)
+	{
+	  if(result[i]==0)
+	    {
+	      if(atoi(destPort2.c_str()) == 80)
+		{
+		  found_flag_2[i] = 1;
+		  egress_counter_global++;
+		}
+	    }
+	}
+
+      /* per one list */
+      std::cout << "[" << now_str() << "] " << "ThreadID" << thread_id << ":[" << file_counter << "]" << "(" << list_file << ")" << addr_counter
+		<< "(" << list_data.size() << "):" << argIP << "/"
+		<< netmask << " @ " << filename << ":" << ingress_counter_global << ":" << egress_counter_global << ":" << miss_counter << std::endl;
+      
+      // travdirtime = stop_timer(&t);
+      // print_timer(travdirtime);
 
       addr_counter++;
+
+      /* free */
+      free(srcIP_ul);
+      free(dstIP_ul);
+      free(netmask_ul);
+      free(result);
+
+      //  cout << address_to_match << "," << egress_counter << endl;
     }
-    
-    int ingress_counter = 0;
-    int egress_counter = 0;
-    
-    for(auto itr = found_flag.begin(); itr != found_flag.end(); ++itr) {
-      if(itr->second==1)
-	ingress_counter++;
-    }
-    
-    for(auto itr = found_flag_2.begin(); itr != found_flag_2.end(); ++itr) {
-      if(itr->second==1)
-	egress_counter++;
-    }
-    
-    std::cout << "INGRESS:" << ingress_counter << "," << "EGRESS:" << egress_counter << "," << "ALL:" << session_data.size() << std::endl;
 
-    // boost:filesystem::path full_path(filename);
-    // boost::filesystem::path dir = p.parent_path();
+    int counter_flag = 0;
+    for(int i =0; i < session_data.size(); i++)
+      {
+	if(found_flag[i]==1)
+	  counter_flag++;	
+      }
 
-    boost::filesystem::path full_path(boost::filesystem::current_path());
-    cout << full_path << endl;
-    boost::filesystem::path dir = full_path.parent_path();
-    cout << dir << endl;
+    int counter_flag_2 = 0;
+    for(int i =0; i < session_data.size(); i++)
+      {
+	if(found_flag_2[i]==1)
+	  counter_flag_2++;	
+      }
 
-    string tmp_filename = string(filename);
-    cout << tmp_filename << endl;
+    file_counter++;
+    cout << "[" << file_counter << "]" << counter_flag << "," << counter_flag_2 << " @ " << filename << endl;
 
-    string delim ("/");
-    list<string> list_string;
-    boost::split(list_string, tmp_filename, boost::is_any_of(delim));
-    cout << list_string.back() << endl;
-
-    // string filename_dst = full_path.string() + "/" + list_string.back() + "_egress";
-    string filename_dst = full_path.string() + "/" + list_string.back() + "_egress";
-    cout << filename_dst << endl;
-   
-    const string file_rendered_outward = session_file + "_egress";
-    ofstream outputfile_outward(file_rendered_outward);
-    
-    const string file_rendered_inward = session_file + "_ingress";
-    ofstream outputfile_inward(file_rendered_inward);
+    const string file_rendered_egress = session_file + "_egress";
+    ofstream outputfile_egress(file_rendered_egress);
     
     for (unsigned int row3 = 0; row3 < session_data.size(); row3++) {
       vector<string> rec3 = session_data[row3];
@@ -356,41 +427,16 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	  for(auto itr = rec3.begin(); itr != rec3.end(); ++itr) {
 	    all_line = all_line + "," + *itr;
 	  }
-	  outputfile_outward << all_line << std::endl;
+	  outputfile_egress << all_line << std::endl;
 	}
-      if(found_flag_2[row3]==1)
-	{
-	  std::string all_line;
-	  all_line = "0";
-	  for(auto itr = rec3.begin(); itr != rec3.end(); ++itr) {
-	    all_line = all_line + "," + *itr;
-	  }
-	  outputfile_inward << all_line << std::endl;
-	}	
     }
+    outputfile_egress.close();
 
-    outputfile_inward.close();
-    outputfile_outward.close();
+    const string file_rendered_ingress = session_file + "_ingress";
+    ofstream outputfile_ingress(file_rendered_ingress);
 
-
-    /*
-    const string file_rendered_outward = session_file + "_egress";
-    ofstream outputfile_outward(file_rendered_outward);
-	  
-    const string file_rendered_inward = session_file + "_ingress";
-    ofstream outputfile_inward(file_rendered_inward);
-    
     for (unsigned int row3 = 0; row3 < session_data.size(); row3++) {
       vector<string> rec3 = session_data[row3];
-      if(found_flag[row3]==1)
-	{
-	  std::string all_line;
-	  all_line = "1";
-	  for(auto itr = rec3.begin(); itr != rec3.end(); ++itr) {
-	    all_line = all_line + "," + *itr;
-	  }
-	  outputfile_outward << all_line << std::endl;
-	}
       if(found_flag_2[row3]==1)
 	{
 	  std::string all_line;
@@ -398,14 +444,11 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	  for(auto itr = rec3.begin(); itr != rec3.end(); ++itr) {
 	    all_line = all_line + "," + *itr;
 	  }
-	  outputfile_inward << all_line << std::endl;
-	}	
+	  outputfile_ingress << all_line << std::endl;
+	}
     }
-    
-    outputfile_inward.close();
-    outputfile_outward.close();
-    */
-    
+    outputfile_ingress.close();
+  	 
     return 0;
   }
     
@@ -527,14 +570,14 @@ void master_func(thread_arg_t* arg) {
 
 void worker_func(thread_arg_t* arg) {
     int flen;
-    char* fname = NULL;
+    char* fname= NULL;
+
     queue_t* q = arg->q;
     char* srchstr = arg->srchstr;
 
     int thread_id = arg->id;
-    
-    char* filelist_name = arg->filelist_name;
-    
+    char* fname_list = arg->fname_list;
+
 #ifdef __CPU_SET
     cpu_set_t mask;    
     __CPU_ZERO(&mask);
@@ -552,7 +595,7 @@ void worker_func(thread_arg_t* arg) {
         if (strncmp(fname, END_MARK_FNAME, END_MARK_FLENGTH + 1) == 0)
             break;
 
-        n = traverse_file(fname, filelist_name, thread_id);
+        n = traverse_file(fname, fname_list, thread_id);
         pthread_mutex_lock(&result.mutex);
 
         if (n > result.num) {
@@ -575,16 +618,14 @@ void worker_func(thread_arg_t* arg) {
         if (strncmp(fname, END_MARK_FNAME, END_MARK_FLENGTH + 1) == 0)
             break;
 
-        n = traverse_file(fname, filelist_name, thread_id);
+        n = traverse_file(fname, fname_list, thread_id);
 
-	/*
         if (n > my_result_num) {
             my_result_num = n;
             my_result_len = flen;
             my_result_fname = (char*)alloca(flen);
             strcpy(my_result_fname, fname);
         }
-	*/
     }
     pthread_mutex_lock(&result.mutex);
     if (my_result_num > result.num) {
@@ -600,7 +641,7 @@ void worker_func(thread_arg_t* arg) {
 
 void print_result(thread_arg_t* arg) {
     if (result.num) {
-        printf("Total %d files\n", arg->filenum);
+      // printf("Total %d files\n", arg->filenum);
         printf("Max include file: %s[include %d]\n", result.fname, result.num);	
     }
     return;
@@ -633,9 +674,10 @@ int main(int argc, char* argv[]) {
         targ[i].q = &q;
         // targ[i].srchstr = argv[1];
         targ[i].dirname = argv[1];
-	targ[i].filelist_name = argv[2];
+	targ[i].fname_list = argv[2];
         targ[i].filenum = 0;
         targ[i].cpuid = i%cpu_num;
+	cout << "threadID" << i << " - launched." << endl;
     }
     result.fname = NULL;
 
@@ -650,7 +692,6 @@ int main(int argc, char* argv[]) {
     pthread_create(&master, NULL, (void*)master_func, (void*)&targ[0]);
     for (i = 1; i < thread_num; ++i) {
         targ[i].id = i;
-	cout << "[" << now_str() << "]" << " thread - " << i << " launched." << endl; 
         pthread_create(&worker[i], NULL, (void*)worker_func, (void*)&targ[i]);
     }
 	
@@ -663,7 +704,7 @@ int main(int argc, char* argv[]) {
     // cout << global_counter << endl;
     // printf("avg:%10f\n", avg);
 
-    printf("total# of files :%d\n", global_counter);
+    // printf("total# of files :%d\n", global_counter);
     //cout << "[insertion]avg time for insertion:" << avg << endl;
     
     // printf("[insertion]total duration time insertion:%f\n", global_duration);
@@ -707,7 +748,7 @@ int main(int argc, char* argv[]) {
     }
     outputfile.close();
 
-    cout << "FINISHED - INGRESS:" << ingress_counter_global << ":EGRESS:" << egress_counter_global << endl;
+    cout << "FINISHED: " << ingress_counter_global << ":" << egress_counter_global << endl;
     
     return 0;
 }

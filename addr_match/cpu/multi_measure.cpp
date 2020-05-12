@@ -60,6 +60,8 @@ static int ingress_counter_global = 0;
 static int egress_counter_global = 0;
 static int miss_counter = 0;
 
+static int file_counter = 0;
+
 extern void kernel(long* h_key, long* h_value_1, long* h_value_2, int size);
 
 typedef struct _result {
@@ -211,7 +213,7 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
       
       netmask = atoi(rec[1].c_str());
 	    
-      std::cout << "[" << now_str() << "]" << "threadID:" << thread_id << ":" << list_file << ":" << addr_counter << "(" << list_data.size() << "):"
+      std::cout << "[" << now_str() << "]" << "threadID:" << thread_id << ":" << "<" << file_counter << ">" << list_file << ":" << addr_counter << "(" << list_data.size() << "):"
 		<< argIP << "/" << netmask << ":" << filename << ":" << ingress_counter_global << ":" << egress_counter_global
 		<< ":" << miss_counter << std::endl;
 	    
@@ -239,6 +241,7 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
    
 	std::string srcIP = rec2[27];
 	std::string destIP = rec2[20];
+	std::string destPort = rec2[19];
 	
 	for(size_t c = srcIP.find_first_of("\""); c != string::npos; c = c = srcIP.find_first_of("\"")){
 	  srcIP.erase(c,1);
@@ -247,58 +250,35 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	for(size_t c = destIP.find_first_of("\""); c != string::npos; c = c = destIP.find_first_of("\"")){
 	  destIP.erase(c,1);
 	}
-				
-	std::string sessionIPstring;
-	for (const auto subStr : split_string_2(srcIP, del2)) {
-	  unsigned long ipaddr_src;
-	  ipaddr_src = atol(subStr.c_str());
-	  std::bitset<8> trans =  std::bitset<8>(ipaddr_src);
-	  std::string trans_string = trans.to_string();
-	  sessionIPstring = sessionIPstring + trans_string;
+
+	for(size_t c = destPort.find_first_of("\""); c != string::npos; c = c = destPort.find_first_of("\"")){
+	  destPort.erase(c,1);
 	}
-		
-	std::bitset<32> bit_argIP(argIPstring);
-	std::bitset<32> bit_sessionIP(sessionIPstring);
-	
-	std::bitset<32> trans2(0xFFFFFFFF);
-	trans2 <<= netmask;
-	bit_sessionIP &= trans2;
-	
-	if(bit_sessionIP == bit_argIP)
+				
+	if(argIP == srcIP)
 	  {
 	    std::string all_line;
 	    all_line = "1";
 	    for(auto itr = rec2.begin(); itr != rec2.end(); ++itr) {
 	      all_line = all_line + "," + *itr;
 	    }
-	    found_flag_2[row2] = 1;
+
+	    // std::cout << "19:" << rec[19] << std::endl;
+	    
+	    found_flag[row2] = 1;
 	    ingress_counter_global++;
 	  }
-
-	std::string sessionIPstring_2;
-	for (const auto subStr : split_string_2(destIP, del2)) {
-	  unsigned long ipaddr_dest;
-	  ipaddr_dest = atol(subStr.c_str());
-	  std::bitset<8> trans =  std::bitset<8>(ipaddr_dest);
-	  std::string trans_string = trans.to_string();
-	  sessionIPstring_2 = sessionIPstring_2 + trans_string;
-	}
-		
-	std::bitset<32> bit_argIP_2(argIPstring);
-	std::bitset<32> bit_sessionIP_2(sessionIPstring_2);
 	
-	std::bitset<32> trans2_2(0xFFFFFFFF);
-	trans2_2 <<= netmask;
-	bit_sessionIP_2 &= trans2_2;
-	
-	if(bit_sessionIP_2 == bit_argIP_2)
+	if(argIP == destIP)
 	  {
 	    std::string all_line;
 	    all_line = "0";
 	    for(auto itr = rec2.begin(); itr != rec2.end(); ++itr) {
 	      all_line = all_line + "," + *itr;
 	    }
-	    found_flag[row2] = 1;
+
+	    // std::cout << "19:" << rec[19] << std::endl;
+	    found_flag_2[row2] = 1;
 	    egress_counter_global++;
 	  }
       }
@@ -405,6 +385,8 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
     outputfile_inward.close();
     outputfile_outward.close();
     */
+
+    file_counter++;
     
     return 0;
   }
