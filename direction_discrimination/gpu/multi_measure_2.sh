@@ -21,8 +21,10 @@ mkdir egress_${REGION_NAME}_${date}
 
 ./build-traverse.sh discernGPU
 
+BASEDIR="/mnt/data/"
+
 echo "copying..."
-time cp -r /mnt/data/${date} .
+time cp -r ${BASEDIR}${date} .
 time ./discernGPU $date list-${REGION_NAME}
 
 ls ./${date}/*ingress > list
@@ -56,3 +58,5 @@ run_time=$((end_time - start_time))
 run_time_minutes=`echo $(( ${run_time} / 60))`
 
 echo "ELAPSED TIME:"${date}":"$run_time":"$run_time_minutes
+
+du -h ${BASEDIR}${date}
