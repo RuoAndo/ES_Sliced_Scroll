@@ -1,4 +1,4 @@
-RMDATE=`date --date '3 day ago' +%Y%m%d`
+RMDATE=`date --date '15 day ago' +%Y%m%d`
 echo $RMDATE
 rm -rf *_${RMDATE}
 rm -rf $RMDATE
