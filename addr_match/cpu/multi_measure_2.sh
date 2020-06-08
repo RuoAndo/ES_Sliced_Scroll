@@ -1,4 +1,4 @@
-date=$(date -d '3 day ago' "+%Y%m%d")
+date=$(date -d '${1} day ago' "+%Y%m%d")
 echo $date
 REGION_NAME=$1
 
@@ -58,6 +58,10 @@ run_time=$((end_time - start_time))
 run_time_minutes=`echo $(( ${run_time} / 60))`
 
 echo "ELAPSED TIME:"${REGION_NAME}":"${date}":"$run_time":"$run_time_minutes
+
+date=$(date -d '40 day ago' "+%Y%m%d")
+rm -rf ./egress_${REGION_NAME}/${REGION_NAME}*${date}
+rm -rf ./ingress_${REGION_NAME}/${REGION_NAME}*${date}
 
 #scp -r egress_${REGION_NAME}_${date} 192.168.72.5:/mnt/sdd/nii-socs/
 #scp -r ingress_${REGION_NAME}_${date} 192.168.72.5:/mnt/sdd/nii-socs/
