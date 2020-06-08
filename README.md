@@ -131,6 +131,7 @@ sys     0m1.614s
 
 You see the error message above. But it might be OK.
 
+<a name="exporter"></a>
 # [2] Parallel exporter
 
 2.1: Modify USR, PASSWD and ADDRESS.
