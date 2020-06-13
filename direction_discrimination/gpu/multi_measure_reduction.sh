@@ -55,18 +55,19 @@ done < list
 
 rm -rf ${date}
 
-./build-reduction.sh multi13
+
+./build_cpu_reduction.sh cpu_reduction
 
 mkdir hist_ingress_${REGION_NAME}
 mkdir hist_egress_${REGION_NAME}
 
 rm -rf tmp_counts
-./multi13 ./ingress_${REGION_NAME}_${date}
-cp tmp_counts ./hist_ingress_${REGION_NAME}/${date}
+./cpu_reduction ./ingress_${REGION_NAME}_${date}
+cp tmp-counts ./ingress_${REGION_NAME}/${date}
 
 rm -rf tmp_counts
-./multi13 ./egress_${REGION_NAME}_${date}
-cp tmp_counts ./hist_egress_${REGION_NAME}/${date}
+./cpu_reduction ./egress_${REGION_NAME}_${date}
+cp tmp-counts ./egress_${REGION_NAME}/${date}
 
 end_time=`date +%s`
 run_time=$((end_time - start_time))
