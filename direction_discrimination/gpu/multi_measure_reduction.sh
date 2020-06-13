@@ -61,11 +61,11 @@ rm -rf ${date}
 mkdir hist_ingress_${REGION_NAME}
 mkdir hist_egress_${REGION_NAME}
 
-rm -rf tmp_counts
+rm -rf tmp-counts
 ./cpu_reduction ./ingress_${REGION_NAME}_${date}
 cp tmp-counts ./ingress_${REGION_NAME}/${date}
 
-rm -rf tmp_counts
+rm -rf tmp-counts
 ./cpu_reduction ./egress_${REGION_NAME}_${date}
 cp tmp-counts ./egress_${REGION_NAME}/${date}
 
