@@ -1,4 +1,4 @@
-date=$(date -d '${1} day ago' "+%Y%m%d")
+date=$(date -d '2 day ago' "+%Y%m%d")
 echo $date
 REGION_NAME=$1
 
