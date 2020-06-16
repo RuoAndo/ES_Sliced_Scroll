@@ -568,7 +568,7 @@ int main(int argc, char* argv[]) {
 
       std::string timestamp = to_string(itr->first);
 
-      cout << timestamp << endl;
+      // cout << timestamp << endl;
       
       if(timestamp.length()==14)
 	{
