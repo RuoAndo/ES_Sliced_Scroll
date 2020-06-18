@@ -578,7 +578,7 @@ int main(int argc, char* argv[]) {
 
       std::string timestamp = to_string(itr->first);
 
-      cout << timestamp << endl;
+      // cout << timestamp << endl;
       
       outputfile << timestamp.substr(0,4) << "-" << timestamp.substr(4,2) << "-" << timestamp.substr(6,2) << " "
 		 << timestamp.substr(8,2) << ":" << timestamp.substr(10,2) << ":" << timestamp.substr(12,2)
