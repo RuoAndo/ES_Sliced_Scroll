@@ -23,7 +23,7 @@ BASEDIR="/mnt/data/"
 ./build-traverse.sh discernGPU
 
 echo "copying..."
-time cp -r du -h ${BASEDIR}${date} .
+time cp -r ${BASEDIR}${date} .
 time ./discernGPU $date list-${REGION_NAME}
 
 ls ./${date}/*ingress > list
