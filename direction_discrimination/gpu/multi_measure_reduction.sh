@@ -83,9 +83,12 @@ du -h ${BASEDIR}${date}
 
 echo "ELAPSED TIME:"${date}":"$run_time":"$run_time_minutes
 
-date=$(date -d '40 day ago' "+%Y%m%d")
+date=$(date -d '3 day ago' "+%Y%m%d")
 rm -rf ./egress_${REGION_NAME}/${REGION_NAME}*${date}
 rm -rf ./ingress_${REGION_NAME}/${REGION_NAME}*${date}
+
+rm -rf ./egress_${REGION_NAME}_${date}
+rm -rf ./ingress_${REGION_NAME}_${date}
 
 rm -rf ./histo_egress_${REGION_NAME}/${date}
 rm -rf ./histo_ingress_${REGION_NAME}/${date}
