@@ -19,10 +19,11 @@ mkdir egress_${REGION_NAME}_${date}
 #mkdir ingress
 #mkdir egress
 
+BASEDIR="/mnt/data/"
 ./build-traverse.sh discernGPU
 
 echo "copying..."
-time cp -r /mnt/data/${date} .
+time cp -r ${BASEDIR}${date} .
 time ./discernGPU $date list-${REGION_NAME}
 
 ls ./${date}/*ingress > list
