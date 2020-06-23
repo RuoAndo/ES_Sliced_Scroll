@@ -203,7 +203,7 @@ int traverse_file(char* filename, int thread_id) {
 	    continue;
 	  }
 	    
-	std::string tms = rec[1];
+	std::string tms = rec[30];
 	
 	for(size_t c = tms.find_first_of("\""); c != string::npos; c = c = tms.find_first_of("\"")){
     	      tms.erase(c,1);
