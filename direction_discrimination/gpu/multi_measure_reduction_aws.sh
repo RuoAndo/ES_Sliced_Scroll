@@ -19,7 +19,7 @@ mkdir egress_${REGION_NAME}_${date}
 #mkdir ingress
 #mkdir egress
 
-./build.sh multi_measure
+./build-traverse.sh discernGPU
 
 BASEDIR="/root/"
 
@@ -27,7 +27,7 @@ du -h ${BASEDIR}${date}
 
 echo "copying..."
 time cp -r ${BASEDIR}${date} .
-time ./multi_measure $date list-${REGION_NAME}
+time ./discernGPU $date list-${REGION_NAME}
 
 ls ./${date}/*ingress > list
 
@@ -79,8 +79,8 @@ mv tmp ./histo_egress_${REGION_NAME}/${date}
 scp ingress_${REGION_NAME}_${date}/* 192.168.76.216:/mnt/data/aws/ingress/
 scp egress_${REGION_NAME}_${date}/* 192.168.76.216:/mnt/data/aws/egress/  
 
-scp -r ingress_${REGION_NAME}_${date} 192.168.76.216:/mnt/data/aws/ap-northeast-1/
-scp -r egress_${REGION_NAME}_${date} 192.168.76.216:/mnt/data/aws/ap-northeast-1/
+scp -r ingress_${REGION_NAME}_${date} 192.168.76.216:/mnt/data/aws/ap-southeast/
+scp -r egress_${REGION_NAME}_${date} 192.168.76.216:/mnt/data/aws/ap-southeast/
 
 end_time=`date +%s`
 run_time=$((end_time - start_time))
