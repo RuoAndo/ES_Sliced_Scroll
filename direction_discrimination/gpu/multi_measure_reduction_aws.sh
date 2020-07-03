@@ -79,8 +79,8 @@ mv tmp ./histo_egress_${REGION_NAME}/${date}
 scp ingress_${REGION_NAME}_${date}/* 192.168.76.216:/mnt/data/aws/ingress/
 scp egress_${REGION_NAME}_${date}/* 192.168.76.216:/mnt/data/aws/egress/  
 
-scp -r ingress_${REGION_NAME}_${date} 192.168.76.216:/mnt/data/aws/ap-southeast/
-scp -r egress_${REGION_NAME}_${date} 192.168.76.216:/mnt/data/aws/ap-southeast/
+scp -r ingress_${REGION_NAME}_${date} 192.168.76.216:/mnt/data/aws/${REGION_NAME}/
+scp -r egress_${REGION_NAME}_${date} 192.168.76.216:/mnt/data/aws/${REGION_NAME}/
 
 end_time=`date +%s`
 run_time=$((end_time - start_time))
