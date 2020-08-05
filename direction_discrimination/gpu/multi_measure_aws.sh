@@ -21,7 +21,7 @@ mkdir egress_${REGION_NAME}_${date}
 
 ./build-traverse.sh discernGPU
 
-BASEDIR="/mnt/data2/"
+BASEDIR="/mnt/data/"
 
 du -h ${BASEDIR}${date}
 
@@ -55,41 +55,14 @@ done < list
 
 rm -rf ${date}
 
-./build_cpu_reduction.sh cpu_reduction
-
-mkdir histo_ingress_${REGION_NAME}
-mkdir histo_egress_${REGION_NAME}
-
-start_time=`date +%s`
-rm -rf tmp-counts
-rm -rf tmp
-./cpu_reduction ./ingress_${REGION_NAME}_${date}
-cat header-histo > tmp
-cat tmp-counts >> tmp 
-mv tmp ./histo_ingress_${REGION_NAME}/${date}
-
-rm -rf tmp-counts
-rm -rf tmp
-./cpu_reduction ./egress_${REGION_NAME}_${date}
-cat header-histo > tmp
-cat tmp-counts >> tmp 
-mv tmp ./histo_egress_${REGION_NAME}/${date}
-
 end_time=`date +%s`
 run_time=$((end_time - start_time))
 run_time_minutes=`echo $(( ${run_time} / 60))`
 
-du -h ${BASEDIR}${date}
-
 echo "ELAPSED TIME:"${date}":"$run_time":"$run_time_minutes
 
-date=$(date -d '3 day ago' "+%Y%m%d")
+du -h ${BASEDIR}${date}
+
+date=$(date -d '90 day ago' "+%Y%m%d")
 rm -rf ./egress_${REGION_NAME}/${REGION_NAME}*${date}
 rm -rf ./ingress_${REGION_NAME}/${REGION_NAME}*${date}
-
-rm -rf ./egress_${REGION_NAME}_${date}
-rm -rf ./ingress_${REGION_NAME}_${date}
-
-rm -rf ./histo_egress_${REGION_NAME}/${date}
-rm -rf ./histo_ingress_${REGION_NAME}/${date}
-

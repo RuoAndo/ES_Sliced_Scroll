@@ -202,14 +202,7 @@ int traverse_file(char* filename, int thread_id) {
 	    line_counter++;
 	    continue;
 	  }
-
-	/*
-	  direction,start_time,source_zone,packets,sctp_chunks_sent,destination_zone,session_id,packets_received,log_forwarding_profile,@version,offset,dest_retention_period,repeat_count,
-	  sctp_chunks,protocol,tunnel_id_or_imsi,bytes_sent,sctp_chunks_received,action,index_day,destination_port,destination_ip,virtual_system,dest_country_code,bytes_received,
-	  flags,source_location,@timestamp,source_ip,destination_location,capture_time,sctp_association_id,rule_name,parent_session_id,elapsed_tme,subtype,category,source_port,
-	  application,packets_sent,session_end_reason,src_country_code,bytes,action_source,device_name
-	*/	
-
+	    
 	std::string tms = rec[30];
 	
 	for(size_t c = tms.find_first_of("\""); c != string::npos; c = c = tms.find_first_of("\"")){
@@ -250,12 +243,11 @@ int traverse_file(char* filename, int thread_id) {
 	sleepTime.tv_sec = 0;
 	sleepTime.tv_nsec = 123;
 
-	// outputfile << timestamp.substr(0,4) << "-" << timestamp.substr(4,2) << "-" << timestamp.substr(6,2) << " "
-	
+	std::string tms2 = tms.substr(0,11) + "000";	  
+
 	iTbb_Vec_timestamp::accessor t;
-	TbbVec_timestamp.insert(t, stoull(tms.substr(0,14)));
+	TbbVec_timestamp.insert(t, stoull(tms2));
 	t->second += 1;
-	
 	// t->second += stol(bytes);
 
 	char str[100];
@@ -578,11 +570,14 @@ int main(int argc, char* argv[]) {
 
       std::string timestamp = to_string(itr->first);
 
-      // cout << timestamp << endl;
+      cout << timestamp << endl;
       
-      outputfile << timestamp.substr(0,4) << "-" << timestamp.substr(4,2) << "-" << timestamp.substr(6,2) << " "
-		 << timestamp.substr(8,2) << ":" << timestamp.substr(10,2) << ":" << timestamp.substr(12,2)
-		 << "," << itr->second << endl;
+      if(timestamp.length()==14)
+	{
+	  outputfile << timestamp.substr(0,4) << "-" << timestamp.substr(4,2) << "-" << timestamp.substr(6,2) << " "
+		     << timestamp.substr(8,2) << ":" << timestamp.substr(10,1) << 0 << ":" << "00"
+		     << "," << itr->second << endl;
+	}
     }
     outputfile.close();
 

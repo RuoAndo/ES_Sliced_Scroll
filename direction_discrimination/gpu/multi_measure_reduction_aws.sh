@@ -21,7 +21,7 @@ mkdir egress_${REGION_NAME}_${date}
 
 ./build-traverse.sh discernGPU
 
-BASEDIR="/mnt/data2/"
+BASEDIR="/root/"
 
 du -h ${BASEDIR}${date}
 
@@ -75,6 +75,13 @@ cat header-histo > tmp
 cat tmp-counts >> tmp 
 mv tmp ./histo_egress_${REGION_NAME}/${date}
 
+##
+scp ingress_${REGION_NAME}_${date}/* 192.168.76.216:/mnt/data/aws/ingress/
+scp egress_${REGION_NAME}_${date}/* 192.168.76.216:/mnt/data/aws/egress/  
+
+scp -r ingress_${REGION_NAME}_${date} 192.168.76.216:/mnt/data/aws/${REGION_NAME}/
+scp -r egress_${REGION_NAME}_${date} 192.168.76.216:/mnt/data/aws/${REGION_NAME}/
+
 end_time=`date +%s`
 run_time=$((end_time - start_time))
 run_time_minutes=`echo $(( ${run_time} / 60))`
@@ -83,7 +90,7 @@ du -h ${BASEDIR}${date}
 
 echo "ELAPSED TIME:"${date}":"$run_time":"$run_time_minutes
 
-date=$(date -d '3 day ago' "+%Y%m%d")
+date=$(date -d '90 day ago' "+%Y%m%d")
 rm -rf ./egress_${REGION_NAME}/${REGION_NAME}*${date}
 rm -rf ./ingress_${REGION_NAME}/${REGION_NAME}*${date}
 

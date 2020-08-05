@@ -19,11 +19,8 @@ mkdir egress_${REGION_NAME}_${date}
 #mkdir ingress
 #mkdir egress
 
+BASEDIR="/mnt/data/"
 ./build-traverse.sh discernGPU
-
-BASEDIR="/mnt/data2/"
-
-du -h ${BASEDIR}${date}
 
 echo "copying..."
 time cp -r ${BASEDIR}${date} .
@@ -57,23 +54,23 @@ rm -rf ${date}
 
 ./build_cpu_reduction.sh cpu_reduction
 
-mkdir histo_ingress_${REGION_NAME}
-mkdir histo_egress_${REGION_NAME}
+mkdir port_ingress_${REGION_NAME}
+mkdir port_egress_${REGION_NAME}
 
 start_time=`date +%s`
 rm -rf tmp-counts
 rm -rf tmp
 ./cpu_reduction ./ingress_${REGION_NAME}_${date}
-cat header-histo > tmp
+cat header-port > tmp
 cat tmp-counts >> tmp 
-mv tmp ./histo_ingress_${REGION_NAME}/${date}
+mv tmp ./port_ingress_${REGION_NAME}/${date}
 
 rm -rf tmp-counts
 rm -rf tmp
 ./cpu_reduction ./egress_${REGION_NAME}_${date}
-cat header-histo > tmp
+cat header-port > tmp
 cat tmp-counts >> tmp 
-mv tmp ./histo_egress_${REGION_NAME}/${date}
+mv tmp ./port_egress_${REGION_NAME}/${date}
 
 end_time=`date +%s`
 run_time=$((end_time - start_time))
@@ -83,13 +80,24 @@ du -h ${BASEDIR}${date}
 
 echo "ELAPSED TIME:"${date}":"$run_time":"$run_time_minutes
 
-date=$(date -d '3 day ago' "+%Y%m%d")
+date=$(date -d '90 day ago' "+%Y%m%d")
 rm -rf ./egress_${REGION_NAME}/${REGION_NAME}*${date}
 rm -rf ./ingress_${REGION_NAME}/${REGION_NAME}*${date}
 
-rm -rf ./egress_${REGION_NAME}_${date}
-rm -rf ./ingress_${REGION_NAME}_${date}
+rm -rf ./port_egress_${REGION_NAME}/${date}
+rm -rf ./port_ingress_${REGION_NAME}/${date}
 
-rm -rf ./histo_egress_${REGION_NAME}/${date}
-rm -rf ./histo_ingress_${REGION_NAME}/${date}
+end_time=`date +%s`
+run_time=$((end_time - start_time))
+run_time_minutes=`echo $(( ${run_time} / 60))`
 
+echo "ELAPSED TIME:"${date}":"$run_time":"$run_time_minutes
+
+du -h ${BASEDIR}${date}
+
+date=$(date -d '5 day ago' "+%Y%m%d")
+rm -rf ./egress_${REGION_NAME}*
+rm -rf ./ingress_${REGION_NAME}*
+
+scp -r egress_${REGION_NAME} 192.168.76.201:/root/sinet/port/23/
+scp -r ingress_${REGION_NAME} 192.168.76.201:/root/sinet/port/23/
