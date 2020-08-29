@@ -54,6 +54,8 @@ using namespace tbb;
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
 
+#define DISP_RATIO 1000000
+
 typedef tbb::concurrent_hash_map<unsigned long long, long> iTbb_Vec_timestamp;
 static iTbb_Vec_timestamp TbbVec_timestamp; 
 
@@ -246,6 +248,8 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
       cout << "EXCEPTION (session)" << endl;
       return 1;
     }
+
+    cout << "[" << now_str() << "]" << "thread - " << thread_id << " - CSV file READ(1) done." << endl; 
  
     for (unsigned int row = 0; row < list_data.size(); row++) {
       
@@ -333,7 +337,15 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	    } //  if(info.full)
 
          row_counter++;
-	      
+
+	 // if(row_counter % 1000000 == 0 && row_counter > 0)
+	 if(row_counter % DISP_RATIO == 0 && row_counter > 0)
+	   {
+	     std::cout << "[" << now_str() << "]" << "threadID:" << thread_id << ":(" << row_counter << ")" << list_file << ":" << "(" << list_data.size() << "):"
+		       << argIP << "/" << netmask << ":" << filename << ":" << dir_0_counter_global << ":" << dir_1_counter_global
+		       << ":" << std::endl;
+	   }
+	     
         } // for(const auto& cell : rows) {
       }
       
