@@ -297,8 +297,6 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 		sessionIPstring = sessionIPstring + trans_string;
 	      }
 
-	      // outputString = outputString + sessionIPstring + ":"; 
-	  
 	      std::bitset<32> bit_argIP(argIPstring);
 	      std::bitset<32> bit_sessionIP(sessionIPstring);
 	
@@ -308,26 +306,7 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	
 	      if(bit_sessionIP == bit_argIP)
 		{
-		  /*
-		  cout << "HIT:" << to_string(dir_counter) << ":";
-		  outputString = outputString + argIPstring + ":";
-		  outputString = outputString + sessionIPstring + ":"; 
-		  outputString = outputString + "," + string(cell);
-		  std::cout << outputString << std::endl;
-		  */		  
-
-		  /*
-		    std::string all_line;
-		    all_line = "1";
-		    for(auto itr = rec2.begin(); itr != rec2.end(); ++itr) {
-		    all_line = all_line + "," + *itr;
-		    }
-		    found_flag_2[row2] = 1;
-		    ingress_counter_global++;
-		  */
-
 		  dir_flag[row_counter] = dir_counter;
-					       
 		}
   	       else
 		 {    
@@ -336,9 +315,8 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	      dir_counter++;
 	    } //  if(info.full)
 
-         row_counter++;
-
-	 // if(row_counter % 1000000 == 0 && row_counter > 0)
+	  // row_counter++;
+	  // if(row_counter % 1000000 == 0 && row_counter > 0)
 	 if(row_counter % DISP_RATIO == 0 && row_counter > 0)
 	   {
 	     std::cout << "[" << now_str() << "]" << "threadID:" << thread_id << ":(" << row_counter << ")" << list_file << ":" << "(" << list_data.size() << "):"
@@ -347,7 +325,9 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	   }
 	     
         } // for(const auto& cell : rows) {
-      }
+
+	 row_counter++;
+      } // for (const auto& rows : cells) {
       
     } // for (unsigned int row = 0; row < list_data.size(); row++) {
 
