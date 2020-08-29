@@ -317,14 +317,15 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 
 	  // row_counter++;
 	  // if(row_counter % 1000000 == 0 && row_counter > 0)
+	     
+        } // for(const auto& cell : rows) {
+
 	 if(row_counter % DISP_RATIO == 0 && row_counter > 0)
 	   {
 	     std::cout << "[" << now_str() << "]" << "threadID:" << thread_id << ":(" << row_counter << ")" << list_file << ":" << "(" << list_data.size() << "):"
 		       << argIP << "/" << netmask << ":" << filename << ":" << dir_0_counter_global << ":" << dir_1_counter_global
 		       << ":" << std::endl;
 	   }
-	     
-        } // for(const auto& cell : rows) {
 
 	 row_counter++;
       } // for (const auto& rows : cells) {
