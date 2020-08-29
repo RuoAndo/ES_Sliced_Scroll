@@ -54,7 +54,7 @@ using namespace tbb;
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
 
-#define DISP_RATIO 1000000
+#define DISP_RATIO 100000
 
 typedef tbb::concurrent_hash_map<unsigned long long, long> iTbb_Vec_timestamp;
 static iTbb_Vec_timestamp TbbVec_timestamp; 
