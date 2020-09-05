@@ -45,7 +45,7 @@ using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 33
+#define WORKER_THREAD_NUM 9
 #define MAX_QUEUE_NUM 128
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
@@ -212,13 +212,11 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
 
 
     for (int i = 0; i < univ.size(); ++i) {
-    
       const string file_rendered_egress = session_file + "_" + univ[i] + "_egress";
       ofstream outputfile_egress(file_rendered_egress);
       outputfile_egress.close();
     }
       
-    /*
     for(int i=0; i<session_data.size(); i++)
       {
 	found_flag[i] = 0;
@@ -231,7 +229,8 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
       vector<string> rec = list_data[row];
       const string argIP = rec[0]; 
       std::string argIPstring;
-
+      std::string univ_name = rec[2];  
+	
       egress_counter = 0;
       netmask = atoi(rec[1].c_str());
     
@@ -328,6 +327,18 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
 	    {
 	      found_flag[i] = 1;
 	      ingress_counter_global++;
+
+	      const string file_rendered_ingress_w = session_file + "_" + univ_name + "_ingress";
+	      ofstream outputfile_ingress(file_rendered_ingress_w);
+	      
+	      vector<string> rec3 = session_data[row3];
+	      std::string all_line;
+	      all_line = "1";
+	      for(auto itr = rec3.begin(); itr != rec3.end(); ++itr) {
+		all_line = all_line + "," + *itr;
+	      }
+	      outputfile_egress << all_line << std::endl;
+              outputfile_ingress.close();
 	    }
 	}
 
@@ -361,7 +372,8 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
       free(result);
 
     }
-    
+
+    /*    
     int counter_flag = 0;
     for(int i =0; i < session_data.size(); i++)
       {
