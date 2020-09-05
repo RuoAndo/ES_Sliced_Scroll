@@ -261,7 +261,7 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	std::bitset<32> bit_sessionIP(sessionIPstring);
 	
 	std::bitset<32> trans2(0xFFFFFFFF);
-	trans2 <<= netmask;
+	trans2 <<= (32 - netmask);
 	bit_sessionIP &= trans2;
 	
 	if(bit_sessionIP == bit_argIP)
