@@ -45,7 +45,7 @@ using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 9
+#define WORKER_THREAD_NUM 33
 #define MAX_QUEUE_NUM 128
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
@@ -216,6 +216,12 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
       ofstream outputfile_egress(file_rendered_egress);
       outputfile_egress.close();
     }
+
+    for (int i = 0; i < univ.size(); ++i) {
+      const string file_rendered_ingress = session_file + "_" + univ[i] + "_ingress";
+      ofstream outputfile_ingress(file_rendered_ingress);
+      outputfile_ingress.close();
+    }
       
     for(int i=0; i<session_data.size(); i++)
       {
@@ -329,15 +335,15 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
 	      ingress_counter_global++;
 
 	      const string file_rendered_ingress_w = session_file + "_" + univ_name + "_ingress";
-	      ofstream outputfile_ingress(file_rendered_ingress_w);
+	      ofstream outputfile_ingress(file_rendered_ingress_w, ios::app);
 	      
-	      vector<string> rec3 = session_data[row3];
+	      vector<string> rec3 = session_data[i];
 	      std::string all_line;
 	      all_line = "1";
 	      for(auto itr = rec3.begin(); itr != rec3.end(); ++itr) {
 		all_line = all_line + "," + *itr;
 	      }
-	      outputfile_egress << all_line << std::endl;
+	      outputfile_ingress << all_line << std::endl;
               outputfile_ingress.close();
 	    }
 	}
@@ -357,6 +363,19 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
 	    {
 	      found_flag_2[i] = 1;
 	      egress_counter_global++;
+
+	      const string file_rendered_egress_w = session_file + "_" + univ_name + "_egress";
+	      ofstream outputfile_egress(file_rendered_egress_w, ios::app);
+	      
+	      vector<string> rec3 = session_data[i];
+	      std::string all_line;
+	      all_line = "1";
+	      for(auto itr = rec3.begin(); itr != rec3.end(); ++itr) {
+		all_line = all_line + "," + *itr;
+	      }
+	      outputfile_egress << all_line << std::endl;
+              outputfile_egress.close();
+	      
 	    }
 	}
 
