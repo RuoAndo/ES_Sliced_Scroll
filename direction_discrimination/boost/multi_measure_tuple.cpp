@@ -330,54 +330,27 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	      if(bit_sessionIP == bit_argIP)
 		{
 		  dir_flag[row_counter] = dir_counter;
-
-		  // const string file_rendered_ingress_w = session_file + "_" + univ_name + "_ingress";
-		  // ofstream outputfile_ingress(file_rendered_ingress_w, ios::app);
-	      
-		  // vector<string> rec3 = rows;
-		  std::string all_line;
-		  all_line = "1";
-
-		  /*
-		  for (const auto& cell : rows) {
-		    all_line = all_line + string(cell);
-		  }
-		  */
-		    
-		  /*
-		  for(auto itr = rec3.begin(); itr != rec3.end(); ++itr) {
-		    all_line = all_line + "," + *itr;
-		  }
-		  */
-		  
-		  // outputfile_ingress << all_line << std::endl;
-		  // outputfile_ingress.close();
 		}
   	       else
 		 {    
 		   dir_flag[row_counter] = 3;
-		 }    
+		 }
+
+	      /*
+	      if(dir_flag[row_counter]==0)
+		dir_1_counter_global++;
+
+	      if(dir_flag[row_counter]==1)
+		dir_2_counter_global++;	   
+	      */	      
+
 	      dir_counter++;
 	    } //  if(info.full)
 
 	     
         } // for(const auto& cell : rows) {
 
-    for (unsigned int row3 = 0; row3 < session_data.size(); row3++) {
-      if(dir_flag[row3]==1)
-	{
-	  dir_1_counter_global++;
-	  
-	}
-      if(dir_flag[row3]==0)
-	{
-	  dir_0_counter_global++;
-	}	
-    }
 
-	 
-	 
-	 
 	 if(row_counter % DISP_RATIO == 0 && row_counter > 0)
 	   {
 	     std::cout << "[" << now_str() << "]" << "threadID:" << thread_id << ":(" << row_counter << ")" << list_file << ":" << "(" << list_data.size() << "):"
@@ -387,7 +360,48 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 
 	 row_counter++;
       } // for (const auto& rows : cells) {
-      
+
+
+      for(unsigned int row3 = 0; row3 < session_data.size(); row3++) {
+
+	std::vector<string> rec3 = session_data[row3];
+
+	if(dir_flag[row3]==1)
+	  {
+
+	    const string file_rendered_ingress_w = session_file + "_" + univ_name + "_ingress";
+	    ofstream outputfile_ingress(file_rendered_ingress_w, ios::app);
+
+	    std::string all_line;
+	    all_line = "1";
+	       
+	    for(auto itr = rec3.begin(); itr != rec3.end(); ++itr) {
+	      all_line = all_line + "," + *itr;
+	    }
+	    outputfile_ingress << all_line << std::endl;
+	    outputfile_ingress.close();
+	    
+	    dir_1_counter_global++;
+	  }
+	
+	if(dir_flag[row3]==0)
+	  {
+	    const string file_rendered_egress_w = session_file + "_" + univ_name + "_egress";
+	    ofstream outputfile_egress(file_rendered_egress_w, ios::app);
+
+	    std::string all_line;
+	    all_line = "0";
+	       
+	    for(auto itr = rec3.begin(); itr != rec3.end(); ++itr) {
+	      all_line = all_line + "," + *itr;
+	    }
+	    outputfile_egress << all_line << std::endl;
+	    outputfile_egress.close();
+	    
+	    dir_0_counter_global++;
+	  }	
+      }
+
     } // for (unsigned int row = 0; row < list_data.size(); row++) {
 
     return 0;
