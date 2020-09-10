@@ -19,15 +19,15 @@ mkdir egress_${REGION_NAME}_${date}
 #mkdir ingress
 #mkdir egress
 
-./build-traverse.sh discernGPU_port
+./build-traverse.sh portGPU
 
-BASEDIR="/root/"
+BASEDIR="/mnt/data/"
 
 du -h ${BASEDIR}${date}
 
 echo "copying..."
 time cp -r ${BASEDIR}${date} .
-time ./discernGPU_port $date list-${REGION_NAME}
+time ./portGPU $date list-${REGION_NAME}
 
 ls ./${date}/*ingress > list
 
@@ -36,7 +36,7 @@ while read line; do
     fn_dst=`echo $line | cut -d "/" -f 3`
     cat header > tmp
     cat ${fn_src} >> tmp
-    echo "./ingress_${REGION_NAME}/${REGION_NAME}_${fn_dst}_${date}"
+    #echo "./ingress_${REGION_NAME}/${REGION_NAME}_${fn_dst}_${date}"
     cp tmp ./ingress_${REGION_NAME}_${date}/${REGION_NAME}_${fn_dst}_${date}
     mv tmp ./ingress_${REGION_NAME}/${REGION_NAME}_${fn_dst}_${date}
 done < list
@@ -48,7 +48,7 @@ while read line; do
     fn_dst=`echo $line | cut -d "/" -f 3`
     cat header > tmp
     cat ${fn_src} >> tmp
-    echo "./egress_${REGION_NAME}/${REGION_NAME}_${fn_dst}_${date}"
+    #echo "./egress_${REGION_NAME}/${REGION_NAME}_${fn_dst}_${date}"
     cp tmp ./egress_${REGION_NAME}_${date}/${REGION_NAME}_${fn_dst}_${date}
     mv tmp ./egress_${REGION_NAME}/${REGION_NAME}_${fn_dst}_${date}
 done < list
