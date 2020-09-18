@@ -21,7 +21,7 @@ mkdir egress_${REGION_NAME}_${date}
 
 ./build-traverse.sh discernGPU
 
-BASEDIR="/root/"
+BASEDIR="/mnt/data/"
 
 du -h ${BASEDIR}${date}
 
@@ -36,7 +36,7 @@ while read line; do
     fn_dst=`echo $line | cut -d "/" -f 3`
     cat header > tmp
     cat ${fn_src} >> tmp
-    echo "./ingress_${REGION_NAME}/${REGION_NAME}_${fn_dst}_${date}"
+    # echo "./ingress_${REGION_NAME}/${REGION_NAME}_${fn_dst}_${date}"
     cp tmp ./ingress_${REGION_NAME}_${date}/${REGION_NAME}_${fn_dst}_${date}
     mv tmp ./ingress_${REGION_NAME}/${REGION_NAME}_${fn_dst}_${date}
 done < list
@@ -48,7 +48,7 @@ while read line; do
     fn_dst=`echo $line | cut -d "/" -f 3`
     cat header > tmp
     cat ${fn_src} >> tmp
-    echo "./egress_${REGION_NAME}/${REGION_NAME}_${fn_dst}_${date}"
+    # echo "./egress_${REGION_NAME}/${REGION_NAME}_${fn_dst}_${date}"
     cp tmp ./egress_${REGION_NAME}_${date}/${REGION_NAME}_${fn_dst}_${date}
     mv tmp ./egress_${REGION_NAME}/${REGION_NAME}_${fn_dst}_${date}
 done < list
