@@ -735,7 +735,7 @@ int main(int argc, char* argv[]) {
     outputfile.close();
 
     cout << "FINISHED: " << ingress_counter_global << ":" << egress_counter_global << endl;
-    count << "# of worker threads: " << WORKER_THREAD_NUM << endl;
+    cout << "# of worker threads: " << WORKER_THREAD_NUM << endl;
     
     return 0;
 }
