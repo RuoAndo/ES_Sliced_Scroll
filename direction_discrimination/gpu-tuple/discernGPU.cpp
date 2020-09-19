@@ -45,10 +45,10 @@ using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 9
 #define MAX_QUEUE_NUM 128
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
+#define WORKER_THREAD_NUM 33
 
 typedef tbb::concurrent_hash_map<unsigned long long, long> iTbb_Vec_timestamp;
 static iTbb_Vec_timestamp TbbVec_timestamp; 
@@ -738,6 +738,7 @@ int main(int argc, char* argv[]) {
     outputfile.close();
 
     cout << "FINISHED: " << ingress_counter_global << ":" << egress_counter_global << endl;
+    cout << "# of worker threads: " << WORKER_THREAD_NUM << endl;
     
     return 0;
 }
