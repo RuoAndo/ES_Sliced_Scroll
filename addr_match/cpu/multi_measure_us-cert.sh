@@ -24,7 +24,7 @@ mkdir egress_${REGION_NAME}_${date}
 BASEDIR="/root/" 
 
 echo "copying..."
-time cp -r ${BASEDIR}${date}
+time cp -r ${BASEDIR}${date} .
 
 time ./multi_measure $date list-${REGION_NAME}
 
