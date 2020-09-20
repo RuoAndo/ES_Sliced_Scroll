@@ -45,7 +45,7 @@ using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 17
+#define WORKER_THREAD_NUM 33
 #define MAX_QUEUE_NUM 91
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
@@ -690,6 +690,7 @@ int main(int argc, char* argv[]) {
     outputfile.close();
 
     cout << "FINISHED - INGRESS:" << ingress_counter_global << ":EGRESS:" << egress_counter_global << endl;
+    cout << "# of worker threads:" << WORKER_THREAD_NUM << endl;
     
     return 0;
 }

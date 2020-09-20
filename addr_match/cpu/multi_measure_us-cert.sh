@@ -21,8 +21,11 @@ mkdir egress_${REGION_NAME}_${date}
 
 ./build.sh multi_measure
 
+BASEDIR="/root/" 
+
 echo "copying..."
-time cp -r /mnt/data/${date} .
+time cp -r ${BASEDIR}${date}
+
 time ./multi_measure $date list-${REGION_NAME}
 
 ls ./${date}/*ingress > list
@@ -63,7 +66,8 @@ scp -r egress_${REGION_NAME}_${date} 192.168.76.216:/mnt/data/us-cert/${REGION_N
 
 echo "ELAPSED TIME:"${REGION_NAME}":"${date}":"$run_time":"$run_time_minutes
 
-du -h /mnt/data/${date} 
+du -h ${BASEDIR}${date}
+# du -h /mnt/data/${date} 
 
 date=$(date -d '40 day ago' "+%Y%m%d")
 rm -rf ./egress_${REGION_NAME}/${REGION_NAME}*${date}
