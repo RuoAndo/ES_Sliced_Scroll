@@ -45,9 +45,9 @@ while read line; do
     #str=`echo $line | cut -d "," -f 3`
     #echo $line
 
-    sed  '/^$/d' $LIST_NAME 
+    #sed  '/^$/d' $LIST_NAME 
     ls ${date} | grep ${line} | grep ingress | grep -v root > list-ingress
-    sed  '/^$/d' $LIST_NAME 
+    #sed  '/^$/d' $LIST_NAME 
     
     while read line2; do
 	#ls -alh ${date}/$line2
@@ -55,9 +55,9 @@ while read line; do
 	cp ${date}/$line2 ${line}_ingress/${line2}_${date}
     done < list-ingress
 
-    sed  '/^$/d' $LIST_NAME 
+    #sed  '/^$/d' $LIST_NAME 
     ls ${date} | grep ${line} | grep egress | grep -v root > list-egress
-    sed  '/^$/d' $LIST_NAME 
+    #sed  '/^$/d' $LIST_NAME 
     
     while read line3; do
 	#ls -alh ${date}/$line3
