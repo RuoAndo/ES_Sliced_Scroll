@@ -7,7 +7,7 @@ echo $date
 REGION_NAME=$1
 LIST_NAME=list-${1}
 
-chmod 400 ${LIST_NAME}
+#chmod 400 ${LIST_NAME}
 
 if [ "$1" = "" ]
 then
