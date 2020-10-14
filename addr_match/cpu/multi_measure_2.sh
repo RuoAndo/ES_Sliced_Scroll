@@ -34,7 +34,7 @@ while read line; do
     fn_dst=`echo $line | cut -d "/" -f 3`
     cat header > tmp
     cat ${fn_src} >> tmp
-    echo "./ingress/${REGION_NAME}_${fn_dst}_${date}"
+    #echo "./ingress/${REGION_NAME}_${fn_dst}_${date}"
     cp tmp ./ingress_${REGION_NAME}_${date}/${REGION_NAME}_${fn_dst}_${date}
     mv tmp ./ingress_${REGION_NAME}/${REGION_NAME}_${fn_dst}_${date}
     #mv tmp ./ingress/${REGION_NAME}_${fn_dst}_${date}
@@ -47,7 +47,7 @@ while read line; do
     fn_dst=`echo $line | cut -d "/" -f 3`
     cat header > tmp
     cat ${fn_src} >> tmp
-    echo "./egress/${REGION_NAME}_${fn_dst}_${date}"
+    #echo "./egress/${REGION_NAME}_${fn_dst}_${date}"
     cp tmp ./egress_${REGION_NAME}_${date}/${REGION_NAME}_${fn_dst}_${date}
     mv tmp ./egress_${REGION_NAME}/${REGION_NAME}_${fn_dst}_${date}
     #mv tmp ./egress/${REGION_NAME}_${fn_dst}_${date}
