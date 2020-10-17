@@ -66,14 +66,14 @@ rm -rf tmp
 ./cpu_reduction ./ingress_${REGION_NAME}_${date}
 cat header-histo > tmp
 cat tmp-counts >> tmp 
-mv tmp ./histo_ingress_${REGION_NAME}/${date}
+mv tmp ./histo_egress_${REGION_NAME}/${date}
 
 rm -rf tmp-counts
 rm -rf tmp
 ./cpu_reduction ./egress_${REGION_NAME}_${date}
 cat header-histo > tmp
 cat tmp-counts >> tmp 
-mv tmp ./histo_egress_${REGION_NAME}/${date}
+mv tmp ./histo_ingress_${REGION_NAME}/${date}
 
 end_time=`date +%s`
 run_time=$((end_time - start_time))
