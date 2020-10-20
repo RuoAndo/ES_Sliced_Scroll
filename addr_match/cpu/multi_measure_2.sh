@@ -21,9 +21,10 @@ mkdir egress_${REGION_NAME}_${date}
 
 ./build.sh multi_measure
 
-BASEDIR="/home/flare/blaze/"
+BASEDIR="/mnt/data"
 
 echo "copying..."
+du -h ${BASEDIR}${date} 
 time cp -r ${BASEDIR}${date} .
 time ./multi_measure $date list-${REGION_NAME}
 
