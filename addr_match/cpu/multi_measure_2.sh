@@ -21,7 +21,7 @@ mkdir egress_${REGION_NAME}_${date}
 
 ./build.sh multi_measure
 
-BASEDIR="/mnt/data"
+BASEDIR="/mnt/data/"
 
 echo "copying..."
 du -h ${BASEDIR}${date} 
