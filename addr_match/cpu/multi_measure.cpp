@@ -299,7 +299,7 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	egress_counter++;
     }
     
-    std::cout << "INGRESS:" << ingress_counter << "," << "EGRESS:" << egress_counter << "," << "ALL:" << session_data.size() << std::endl;
+    std::cout << "INGRESS:" << egress_counter << "," << "EGRESS:" << ingress_counter << "," << "ALL:" << session_data.size() << std::endl;
 
     // boost:filesystem::path full_path(filename);
     // boost::filesystem::path dir = p.parent_path();
@@ -689,7 +689,7 @@ int main(int argc, char* argv[]) {
     }
     outputfile.close();
 
-    cout << "FINISHED - INGRESS:" << ingress_counter_global << ":EGRESS:" << egress_counter_global << endl;
+    cout << "FINISHED - INGRESS:" << egress_counter_global << ":EGRESS:" << ingress_counter_global << endl;
     cout << "# of worker threads:" << WORKER_THREAD_NUM << endl;
     
     return 0;
