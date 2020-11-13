@@ -168,6 +168,7 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
   unsigned int t, travdirtime;
 
   std::string destPort2;
+  std::string sourcePort2;
   
   try {
 
@@ -264,7 +265,8 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
 	    
 	std::string srcIP = rec2[27];
 	std::string destIP = rec2[20];
-	std::string destPort = rec2[19]; 
+	std::string destPort = rec2[19];
+	std::string sourcePort = rec2[36]; 
 	
 	for(size_t c = srcIP.find_first_of("\""); c != string::npos; c = c = srcIP.find_first_of("\"")){
 	  srcIP.erase(c,1);
@@ -277,6 +279,12 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
         for(size_t c = destPort.find_first_of("\""); c != string::npos; c = c = destPort.find_first_of("\"")){
 	  destPort.erase(c,1);
 	  destPort2 = destPort;
+	}
+
+
+	for(size_t c = sourcePort.find_first_of("\""); c != string::npos; c = c = sourcePort.find_first_of("\"")){
+	  sourcePort.erase(c,1);
+	  sourcePort2 = sourcePort;
 	}     
 	
 	std::string srcIPstring;
@@ -336,7 +344,8 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
 	{
 	  if(result[i]==0)
 	    {
-	      if(atoi(destPort2.c_str()) == 80)
+	        //if(atoi(destPort2.c_str()) == 80)
+	      if(atoi(destPort2.c_str()) == 21 && atoi(sourcePort2.c_str()) == 21)
 		{
 		  found_flag[i] = 1;
 		  ingress_counter_global++;
@@ -371,7 +380,8 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
 	{
 	  if(result[i]==0)
 	    {
-	      if(atoi(destPort2.c_str()) == 80)
+	      //if(atoi(destPort2.c_str()) == 80)
+	      if(atoi(destPort2.c_str()) == 21 && atoi(sourcePort2.c_str()) == 21)
 		{
 		  found_flag_2[i] = 1;
 		  egress_counter_global++;
