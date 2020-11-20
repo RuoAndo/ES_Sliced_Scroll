@@ -45,7 +45,7 @@ using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 17
+#define WORKER_THREAD_NUM 48
 #define MAX_QUEUE_NUM 128
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
@@ -344,8 +344,8 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
 	{
 	  if(result[i]==0)
 	    {
-	        //if(atoi(destPort2.c_str()) == 80)
-	      if(atoi(destPort2.c_str()) == 21 && atoi(sourcePort2.c_str()) == 21)
+	        if(atoi(destPort2.c_str()) == 22)
+	      //if(atoi(destPort2.c_str()) == 21 && atoi(sourcePort2.c_str()) == 21)
 		{
 		  found_flag[i] = 1;
 		  ingress_counter_global++;
@@ -380,8 +380,8 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
 	{
 	  if(result[i]==0)
 	    {
-	      //if(atoi(destPort2.c_str()) == 80)
-	      if(atoi(destPort2.c_str()) == 21 && atoi(sourcePort2.c_str()) == 21)
+	      if(atoi(destPort2.c_str()) == 22)
+		//if(atoi(destPort2.c_str()) == 21 && atoi(sourcePort2.c_str()) == 21)
 		{
 		  found_flag_2[i] = 1;
 		  egress_counter_global++;
