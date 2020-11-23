@@ -45,10 +45,10 @@ using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 33
 #define MAX_QUEUE_NUM 128
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
+#define WORKER_THREAD_NUM 33
 
 typedef tbb::concurrent_hash_map<unsigned long long, long> iTbb_Vec_timestamp;
 static iTbb_Vec_timestamp TbbVec_timestamp; 
@@ -366,9 +366,12 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
 	}
 
       /* per one list */
-      std::cout << "[" << now_str() << "] " << "ThreadID" << thread_id << ":[" << file_counter << "]" << "(" << list_file << ")" << addr_counter
+      if(row % 10 == 0)
+	{
+	  std::cout << "[" << now_str() << "] " << "ThreadID" << thread_id << ":[" << file_counter << "]" << "(" << list_file << ")" << addr_counter
 		<< "(" << list_data.size() << "):" << argIP << "/"
 		<< netmask << " @ " << filename << ":" << ingress_counter_global << ":" << egress_counter_global << ":" << miss_counter << std::endl;
+	}
       
       // travdirtime = stop_timer(&t);
       // print_timer(travdirtime);

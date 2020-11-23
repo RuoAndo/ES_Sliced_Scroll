@@ -45,7 +45,7 @@ using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 33
+#define WORKER_THREAD_NUM 8
 #define MAX_QUEUE_NUM 128
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
@@ -84,6 +84,7 @@ typedef struct _queue {
 typedef struct _thread_arg {
     int cpuid;
     int id;
+    int portNo;
     queue_t* q;
     char* srchstr;
     char* dirname;
@@ -151,7 +152,7 @@ bool get_cpu_times(size_t &idle_time, size_t &total_time) {
   return true;
 }
 
-int traverse_file(char* filename, char* filename_list, int thread_id) {
+int traverse_file(char* filename, char* filename_list, int thread_id, int portNo) {
 
 
   int counter = 0;
@@ -166,6 +167,8 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
 
   struct timespec startTime, endTime, sleepTime;
   unsigned int t, travdirtime;
+
+  std::string destPort2;
   
   try {
 
@@ -262,6 +265,7 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
 	    
 	std::string srcIP = rec2[27];
 	std::string destIP = rec2[20];
+	std::string destPort = rec2[19]; 
 	
 	for(size_t c = srcIP.find_first_of("\""); c != string::npos; c = c = srcIP.find_first_of("\"")){
 	  srcIP.erase(c,1);
@@ -270,6 +274,11 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
 	for(size_t c = destIP.find_first_of("\""); c != string::npos; c = c = destIP.find_first_of("\"")){
 	  destIP.erase(c,1);
 	}
+
+        for(size_t c = destPort.find_first_of("\""); c != string::npos; c = c = destPort.find_first_of("\"")){
+	  destPort.erase(c,1);
+	  destPort2 = destPort;
+	}     
 	
 	std::string srcIPstring;
 	for (const auto subStr : split_string_2(srcIP, del2)) {
@@ -328,8 +337,11 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
 	{
 	  if(result[i]==0)
 	    {
-	      found_flag[i] = 1;
-	      ingress_counter_global++;
+	      if(atoi(destPort2.c_str()) == portNo)
+		{
+		  found_flag[i] = 1;
+		  ingress_counter_global++;
+		}
 	    }
 	}
 
@@ -360,8 +372,11 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
 	{
 	  if(result[i]==0)
 	    {
-	      found_flag_2[i] = 1;
-	      egress_counter_global++;
+	      if(atoi(destPort2.c_str()) == portNo)
+		{
+		  found_flag_2[i] = 1;
+		  egress_counter_global++;
+		}
 	    }
 	}
 
@@ -562,6 +577,8 @@ void worker_func(thread_arg_t* arg) {
     char* srchstr = arg->srchstr;
 
     int thread_id = arg->id;
+    int portNo = arg->portNo;
+    
     char* fname_list = arg->fname_list;
 
 #ifdef __CPU_SET
@@ -581,7 +598,7 @@ void worker_func(thread_arg_t* arg) {
         if (strncmp(fname, END_MARK_FNAME, END_MARK_FLENGTH + 1) == 0)
             break;
 
-        n = traverse_file(fname, fname_list, thread_id);
+        n = traverse_file(fname, fname_list, thread_id, portNo);
         pthread_mutex_lock(&result.mutex);
 
         if (n > result.num) {
@@ -604,7 +621,7 @@ void worker_func(thread_arg_t* arg) {
         if (strncmp(fname, END_MARK_FNAME, END_MARK_FLENGTH + 1) == 0)
             break;
 
-        n = traverse_file(fname, fname_list, thread_id);
+        n = traverse_file(fname, fname_list, thread_id, portNo);
 
         if (n > my_result_num) {
             my_result_num = n;
@@ -646,11 +663,9 @@ int main(int argc, char* argv[]) {
 
     struct timespec startTime, endTime, sleepTime;
     
-    /*
-    if (argc != 3) {
-        printf("Usage: search_strings PATTERN [DIR]\n"); return 0;
+    if (argc != 4) {
+        printf("Usage: ./discernPort [DIR] LIST portNo \n"); return 0;
     }
-    */
     
     cpu_num = sysconf(_SC_NPROCESSORS_CONF);
 
@@ -661,6 +676,7 @@ int main(int argc, char* argv[]) {
         // targ[i].srchstr = argv[1];
         targ[i].dirname = argv[1];
 	targ[i].fname_list = argv[2];
+	targ[i].portNo = atoi(argv[2]);
         targ[i].filenum = 0;
         targ[i].cpuid = i%cpu_num;
 	cout << "threadID" << i << " - launched." << endl;
@@ -735,7 +751,6 @@ int main(int argc, char* argv[]) {
     outputfile.close();
 
     cout << "FINISHED: " << ingress_counter_global << ":" << egress_counter_global << endl;
-    cout << "# of worker threads: " << WORKER_THREAD_NUM << endl;
     
     return 0;
 }

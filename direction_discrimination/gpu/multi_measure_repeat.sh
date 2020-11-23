@@ -1,7 +1,7 @@
 REGION_NAME=$1
 
-STARTDATE=20200601
-ENDDATE=20200623
+STARTDATE=20200929
+ENDDATE=20201001
 
 date=$STARTDATE
 while [ 1 ] ; do
@@ -19,7 +19,7 @@ mkdir egress_${REGION_NAME}_${date}
 
 ./build-traverse.sh discernGPU
 
-BASEDIR="/root/"
+BASEDIR="/mnt/data/"
 
 du -h ${BASEDIR}${date}
 

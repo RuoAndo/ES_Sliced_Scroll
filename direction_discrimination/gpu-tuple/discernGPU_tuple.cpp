@@ -164,6 +164,8 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
   std::map <int,int> found_flag;
   std::map <int,int> found_flag_2;
 
+  std::vector<string> univ;
+  
   struct timespec startTime, endTime, sleepTime;
   unsigned int t, travdirtime;
   
@@ -199,7 +201,28 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
       return 1;
     }
 
-    // init map
+    counter = 0;
+    for (unsigned int row = 0; row < list_data.size(); row++) {
+      vector<string> rec_list = list_data[row];
+      univ.push_back(rec_list[2]);
+    }
+
+    std::sort(univ.begin(), univ.end());
+    univ.erase(std::unique(univ.begin(), univ.end()), univ.end());
+
+
+    for (int i = 0; i < univ.size(); ++i) {
+      const string file_rendered_egress = session_file + "_" + univ[i] + "_egress";
+      ofstream outputfile_egress(file_rendered_egress);
+      outputfile_egress.close();
+    }
+
+    for (int i = 0; i < univ.size(); ++i) {
+      const string file_rendered_ingress = session_file + "_" + univ[i] + "_ingress";
+      ofstream outputfile_ingress(file_rendered_ingress);
+      outputfile_ingress.close();
+    }
+      
     for(int i=0; i<session_data.size(); i++)
       {
 	found_flag[i] = 0;
@@ -212,15 +235,11 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
       vector<string> rec = list_data[row];
       const string argIP = rec[0]; 
       std::string argIPstring;
-
+      std::string univ_name = rec[2];  
+	
       egress_counter = 0;
-
-      // start_timer(&t);
-      
       netmask = atoi(rec[1].c_str());
-	    
-      // std::cout << addr_counter << "(" << list_data.size() << "):" << argIP << "/" << netmask << std::endl;
-	    
+    
       char del2 = '.';
 	    
       for (const auto subStr : split_string_2(argIP, del2)) {
@@ -234,7 +253,6 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
       std::bitset<32> argIP_bitset = std::bitset<32>(stoul(argIPstring,0,2));
       unsigned long address_to_match = argIP_bitset.to_ulong();
 
-      /* allocate */
       size_t sBytes = session_data.size() * sizeof(unsigned long);
       unsigned long *srcIP_ul;
       srcIP_ul = (unsigned long *)malloc(sBytes);
@@ -281,7 +299,6 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
 	}
 
 	std::bitset<32> srcIP_bitset = std::bitset<32>(stoul(srcIPstring,0,2));
-	// cout << srcIP_bitset.to_ulong() << endl;
 	srcIP_ul[row2] = srcIP_bitset.to_ulong();
 
 	std::string dstIPstring;
@@ -301,7 +318,6 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
 	netmask_ul[row2] = trans2.to_ulong();
       }
       
-      /* reset */
       for(int i =0; i < session_data.size(); i++)
 	  result[i]=1;
 
@@ -311,29 +327,27 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
       
       discern(srcIP_ul, netmask_ul, address_to_match, result, session_data.size(), thread_id);
 
-      /*
-      clock_gettime(CLOCK_REALTIME, &endTime);
-      printf("discern 1 (srcIP)");
-      if (endTime.tv_nsec < startTime.tv_nsec) {
-	printf("%10ld.%09ld", endTime.tv_sec - startTime.tv_sec - 1
-	       ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
-      } else {
-	printf("%10ld.%09ld", endTime.tv_sec - startTime.tv_sec
-	       ,endTime.tv_nsec - startTime.tv_nsec);
-      }
-      printf(" sec\n");
-      */      
-
       for(int i =0; i < session_data.size(); i++)
 	{
 	  if(result[i]==0)
 	    {
 	      found_flag[i] = 1;
 	      ingress_counter_global++;
+
+	      const string file_rendered_ingress_w = session_file + "_" + univ_name + "_ingress";
+	      ofstream outputfile_ingress(file_rendered_ingress_w, ios::app);
+	      
+	      vector<string> rec3 = session_data[i];
+	      std::string all_line;
+	      all_line = "1";
+	      for(auto itr = rec3.begin(); itr != rec3.end(); ++itr) {
+		all_line = all_line + "," + *itr;
+	      }
+	      outputfile_ingress << all_line << std::endl;
+              outputfile_ingress.close();
 	    }
 	}
 
-      /* reset */
       for(int i =0; i < session_data.size(); i++)
 	  result[i]=1;
 
@@ -343,47 +357,42 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
       
       discern(dstIP_ul, netmask_ul, address_to_match, result, session_data.size(), thread_id);
 
-      /*
-      clock_gettime(CLOCK_REALTIME, &endTime);
-      printf("discern 2 (destIP) ");
-      if (endTime.tv_nsec < startTime.tv_nsec) {
-	printf("%10ld.%09ld", endTime.tv_sec - startTime.tv_sec - 1
-	       ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
-      } else {
-	printf("%10ld.%09ld", endTime.tv_sec - startTime.tv_sec
-	       ,endTime.tv_nsec - startTime.tv_nsec);
-      }
-      printf(" sec\n");
-      */      
-
       for(int i =0; i < session_data.size(); i++)
 	{
 	  if(result[i]==0)
 	    {
 	      found_flag_2[i] = 1;
 	      egress_counter_global++;
+
+	      const string file_rendered_egress_w = session_file + "_" + univ_name + "_egress";
+	      ofstream outputfile_egress(file_rendered_egress_w, ios::app);
+	      
+	      vector<string> rec3 = session_data[i];
+	      std::string all_line;
+	      all_line = "1";
+	      for(auto itr = rec3.begin(); itr != rec3.end(); ++itr) {
+		all_line = all_line + "," + *itr;
+	      }
+	      outputfile_egress << all_line << std::endl;
+              outputfile_egress.close();
+	      
 	    }
 	}
 
-      /* per one list */
       std::cout << "[" << now_str() << "] " << "ThreadID" << thread_id << ":[" << file_counter << "]" << "(" << list_file << ")" << addr_counter
 		<< "(" << list_data.size() << "):" << argIP << "/"
 		<< netmask << " @ " << filename << ":" << ingress_counter_global << ":" << egress_counter_global << ":" << miss_counter << std::endl;
       
-      // travdirtime = stop_timer(&t);
-      // print_timer(travdirtime);
-
       addr_counter++;
 
-      /* free */
       free(srcIP_ul);
       free(dstIP_ul);
       free(netmask_ul);
       free(result);
 
-      //  cout << address_to_match << "," << egress_counter << endl;
     }
 
+    /*    
     int counter_flag = 0;
     for(int i =0; i < session_data.size(); i++)
       {
@@ -434,13 +443,16 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
 	}
     }
     outputfile_ingress.close();
-  	 
+
+    */
+    
     return 0;
   }
-    
+   
   catch(std::exception& e) {
     std::cerr<<"error occurred. error text is :\"" <<e.what()<<"\"\n";
   }
+    
 
 }
 
@@ -736,6 +748,5 @@ int main(int argc, char* argv[]) {
 
     cout << "FINISHED: " << ingress_counter_global << ":" << egress_counter_global << endl;
     cout << "# of worker threads: " << WORKER_THREAD_NUM << endl;
-    
     return 0;
 }

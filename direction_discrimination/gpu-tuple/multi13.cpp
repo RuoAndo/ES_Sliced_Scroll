@@ -31,36 +31,38 @@
 #include "tbb/task_scheduler_init.h"
 #include "tbb/concurrent_vector.h"
 #include "utility.h"
-#include <boost/algorithm/string.hpp>
+
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include "csv.hpp"
 #include "timer.h"
-
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <boost/filesystem.hpp>
 
 using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 33
-#define MAX_QUEUE_NUM 91
+// #define WORKER_THREAD_NUM 9
+#define WORKER_THREAD_NUM 5
+#define MAX_QUEUE_NUM 9
+// #define MAX_QUEUE_NUM 27
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
 
-typedef tbb::concurrent_hash_map<unsigned long long, long> iTbb_Vec_timestamp;
+// extern void kernel(long* h_key, long* h_value_1, long* h_value_2, string filename, int size);
+extern void transfer(unsigned long long *key, long *value, unsigned long long *key_out, long *value_out, int kBytes, int vBytes, size_t data_size, int* new_size, int thread_id);
+
+extern void sort(unsigned long long *key, long *value, unsigned long long *key_out, long *value_out, int kBytes, int vBytes, size_t data_size, int thread_id);
+
+extern bool isCapableP2P(int ngpus);
+extern void enableP2P(int ngpus);
+extern void disableP2P(int ngpus);
+extern void allocateCUDAmemory(int ngpus);
+extern void freeCUDAmemory(int ngpus);
+
+typedef tbb::concurrent_hash_map<long, int> iTbb_Vec_timestamp;
 static iTbb_Vec_timestamp TbbVec_timestamp; 
 
 static int global_counter = 0;
-static double global_duration = 0;
-
-static int ingress_counter_global = 0;
-static int egress_counter_global = 0;
-static int miss_counter = 0;
-
-static int file_counter = 0;
 
 extern void kernel(long* h_key, long* h_value_1, long* h_value_2, int size);
 
@@ -87,7 +89,6 @@ typedef struct _thread_arg {
     queue_t* q;
     char* srchstr;
     char* dirname;
-    char* filelist_name;
     int filenum;
 } thread_arg_t;
 
@@ -134,11 +135,9 @@ std::string now_str()
   return buf;
 }
 
-
-/*
 std::vector<size_t> get_cpu_times() {
   std::ifstream proc_stat("/proc/stat");
-  proc_stat.ignore(5, ' '); 
+  proc_stat.ignore(5, ' '); // Skip the 'cpu' prefix.
   std::vector<size_t> times;
   for (size_t time; proc_stat >> time; times.push_back(time));
   return times;
@@ -152,249 +151,160 @@ bool get_cpu_times(size_t &idle_time, size_t &total_time) {
   total_time = std::accumulate(cpu_times.begin(), cpu_times.end(), 0);
   return true;
 }
-*/
 
-int traverse_file(char* filename, char* filelist_name, int thread_id) {
+int traverse_file(char* filename, int thread_id) {
+    char buf[1024];
+    int n = 0, sumn = 0;
+    int i;
+    unsigned int t, travdirtime;
 
-
-  int counter = 0;
-  int addr_counter = 0;
-  
-  // int N = atoi(argv[3]);  
-  int netmask;
-  std::map <int,int> found_flag;
-  std::map <int,int> found_flag_2;
-  
-  try {
-
-    const string list_file = string(filelist_name); 
-    vector<vector<string>> list_data; 
+    struct timeval tv;
+    struct timespec startTime, endTime, sleepTime;
     
-    const string session_file = string(filename); 
-    vector<vector<string>> session_data; 
-	
-    try {
-      Csv objCsv(list_file);
-      if (!objCsv.getCsv(list_data)) {
-	cout << "read ERROR" << endl;
-	return 1;
-      }
-    }
-    catch (...) {
-      cout << "EXCEPTION (session)" << endl;
-      return 1;
-    }
-  
-    try {
-      Csv objCsv(session_file);
-      if (!objCsv.getCsv(session_data)) {
-	cout << "read ERROR" << endl;
-	return 1;
-      }
-    }
-    catch (...) {
-      cout << "EXCEPTION (session)" << endl;
-      return 1;
-    }
+    cpu_set_t cpu_set;
+    int result;
 
-    // init map
-    for(int i=0; i<session_data.size(); i++)
-      {
-	found_flag[i] = 0;
-	found_flag_2[i] = 0;
-      }
+    int csv_line_counter = 0;
     
-    counter = 0;
-    for (unsigned int row = 0; row < list_data.size(); row++) {
-      
-      vector<string> rec = list_data[row];
-      const string argIP = rec[0]; 
-      std::string argIPstring;
-      
-      netmask = atoi(rec[1].c_str());
-	    
-      std::cout << "[" << now_str() << "]" << "threadID:" << thread_id << ":" << "<" << file_counter << ">" << list_file << ":" << addr_counter << "(" << list_data.size() << "):"
-		<< argIP << "/" << netmask << ":" << filename << ":" << ingress_counter_global << ":" << egress_counter_global
-		<< ":" << miss_counter << std::endl;
-	    
-      char del2 = '.';
-	    
-      for (const auto subStr : split_string_2(argIP, del2)) {
-	unsigned long ipaddr_src;
-	ipaddr_src = atol(subStr.c_str());
-	std::bitset<8> trans =  std::bitset<8>(ipaddr_src);
-	std::string trans_string = trans.to_string();
-	      argIPstring = argIPstring + trans_string;
-      }
-	    
-      for (unsigned int row2 = 0; row2 < session_data.size(); row2++) {
-	vector<string> rec2 = session_data[row2];
-
-	if(row2 == 0)
-	  continue;
-	
-	if(rec2.size() < 34)
-	  {
-	    miss_counter++;
-	    continue;
-	  }
-   
-	std::string srcIP = rec2[27];
-	std::string destIP = rec2[20];
-	std::string destPort = rec2[19];
-	
-	for(size_t c = srcIP.find_first_of("\""); c != string::npos; c = c = srcIP.find_first_of("\"")){
-	  srcIP.erase(c,1);
-	}
-	
-	for(size_t c = destIP.find_first_of("\""); c != string::npos; c = c = destIP.find_first_of("\"")){
-	  destIP.erase(c,1);
-	}
-
-	for(size_t c = destPort.find_first_of("\""); c != string::npos; c = c = destPort.find_first_of("\"")){
-	  destPort.erase(c,1);
-	}
-				
-	if(argIP == srcIP)
-	  {
-	    std::string all_line;
-	    all_line = "1";
-	    for(auto itr = rec2.begin(); itr != rec2.end(); ++itr) {
-	      all_line = all_line + "," + *itr;
-	    }
-
-	    // std::cout << "19:" << rec[19] << std::endl;
-	    
-	    found_flag[row2] = 1;
-	    ingress_counter_global++;
-	  }
-	
-	if(argIP == destIP)
-	  {
-	    std::string all_line;
-	    all_line = "0";
-	    for(auto itr = rec2.begin(); itr != rec2.end(); ++itr) {
-	      all_line = all_line + "," + *itr;
-	    }
-
-	    // std::cout << "19:" << rec[19] << std::endl;
-	    found_flag_2[row2] = 1;
-	    egress_counter_global++;
-	  }
-      }
-
-      addr_counter++;
-    }
-    
-    int ingress_counter = 0;
-    int egress_counter = 0;
-    
-    for(auto itr = found_flag.begin(); itr != found_flag.end(); ++itr) {
-      if(itr->second==1)
-	ingress_counter++;
-    }
-    
-    for(auto itr = found_flag_2.begin(); itr != found_flag_2.end(); ++itr) {
-      if(itr->second==1)
-	egress_counter++;
-    }
-    
-    std::cout << "INGRESS:" << egress_counter << "," << "EGRESS:" << ingress_counter << "," << "ALL:" << session_data.size() << std::endl;
-
-    // boost:filesystem::path full_path(filename);
-    // boost::filesystem::path dir = p.parent_path();
-
-    boost::filesystem::path full_path(boost::filesystem::current_path());
-    cout << full_path << endl;
-    boost::filesystem::path dir = full_path.parent_path();
-    cout << dir << endl;
-
-    string tmp_filename = string(filename);
-    cout << tmp_filename << endl;
-
-    string delim ("/");
-    list<string> list_string;
-    boost::split(list_string, tmp_filename, boost::is_any_of(delim));
-    cout << list_string.back() << endl;
-
-    // string filename_dst = full_path.string() + "/" + list_string.back() + "_egress";
-    string filename_dst = full_path.string() + "/" + list_string.back() + "_egress";
-    cout << filename_dst << endl;
-   
-    const string file_rendered_outward = session_file + "_egress";
-    ofstream outputfile_outward(file_rendered_outward);
-    
-    const string file_rendered_inward = session_file + "_ingress";
-    ofstream outputfile_inward(file_rendered_inward);
-    
-    for (unsigned int row3 = 0; row3 < session_data.size(); row3++) {
-      vector<string> rec3 = session_data[row3];
-      if(found_flag[row3]==1)
-	{
-	  std::string all_line;
-	  all_line = "1";
-	  for(auto itr = rec3.begin(); itr != rec3.end(); ++itr) {
-	    all_line = all_line + "," + *itr;
-	  }
-	  outputfile_outward << all_line << std::endl;
-	}
-      if(found_flag_2[row3]==1)
-	{
-	  std::string all_line;
-	  all_line = "0";
-	  for(auto itr = rec3.begin(); itr != rec3.end(); ++itr) {
-	    all_line = all_line + "," + *itr;
-	  }
-	  outputfile_inward << all_line << std::endl;
-	}	
-    }
-
-    outputfile_inward.close();
-    outputfile_outward.close();
-
-
     /*
-    const string file_rendered_outward = session_file + "_egress";
-    ofstream outputfile_outward(file_rendered_outward);
-	  
-    const string file_rendered_inward = session_file + "_ingress";
-    ofstream outputfile_inward(file_rendered_inward);
-    
-    for (unsigned int row3 = 0; row3 < session_data.size(); row3++) {
-      vector<string> rec3 = session_data[row3];
-      if(found_flag[row3]==1)
-	{
-	  std::string all_line;
-	  all_line = "1";
-	  for(auto itr = rec3.begin(); itr != rec3.end(); ++itr) {
-	    all_line = all_line + "," + *itr;
-	  }
-	  outputfile_outward << all_line << std::endl;
-	}
-      if(found_flag_2[row3]==1)
-	{
-	  std::string all_line;
-	  all_line = "0";
-	  for(auto itr = rec3.begin(); itr != rec3.end(); ++itr) {
-	    all_line = all_line + "," + *itr;
-	  }
-	  outputfile_inward << all_line << std::endl;
-	}	
-    }
-    
-    outputfile_inward.close();
-    outputfile_outward.close();
+    CPU_ZERO(&cpu_set);
+    CPU_SET(2, &cpu_set);
+    result = sched_setaffinity(thread_id, sizeof(cpu_set_t), &cpu_set);
     */
 
-    file_counter++;
-    
-    return 0;
-  }
-    
-  catch(std::exception& e) {
-    std::cerr<<"error occurred. error text is :\"" <<e.what()<<"\"\n";
-  }
+    std::string s1 = "-read";
 
+    size_t previous_idle_time=0, previous_total_time=0;
+    size_t idle_time=0, total_time=0;
+
+    clock_t start = clock();
+    
+    std::cout << "threadID:" << thread_id << ":" << global_counter << ": [" << now_str()
+	      << "] :" << filename << std::endl;
+    
+    const string csv_file = std::string(filename); 
+    vector<vector<string>> data; 
+
+    Csv objCsv(csv_file);
+    if (!objCsv.getCsv(data)) {
+       cout << "read ERROR" << endl;
+       return 1;
+    }
+
+    size_t kBytes = data.size() * sizeof(unsigned long long);
+    unsigned long long *key;
+    key = (unsigned long long *)malloc(kBytes);
+
+    size_t vBytes = data.size() * sizeof(long);
+    long *value;
+    value = (long *)malloc(vBytes);
+
+    unsigned long long *key_out;
+    key_out = (unsigned long long *)malloc(kBytes);
+    
+    long *value_out;
+    value_out = (long *)malloc(vBytes);
+
+    int new_size = 0;
+    
+    for (unsigned int row = 0; row < data.size(); row++)
+      {
+
+	if(csv_line_counter == 0)
+	  {
+	  csv_line_counter++;
+	  continue;
+	  }
+	
+	std::vector<string> rec = data[row];
+
+	std::string tms = rec[1];
+	
+	for(size_t c = tms.find_first_of("\""); c != string::npos; c = c = tms.find_first_of("\"")){
+    	      tms.erase(c,1);
+	}
+
+	for(size_t c = tms.find_first_of("/"); c != string::npos; c = c = tms.find_first_of("/")){
+	      tms.erase(c,1);
+	}
+
+        for(size_t c = tms.find_first_of("."); c != string::npos; c = c = tms.find_first_of(".")){
+	      tms.erase(c,1);
+	}
+
+	for(size_t c = tms.find_first_of(" "); c != string::npos; c = c = tms.find_first_of(" ")){
+	      tms.erase(c,1);
+	}
+
+	for(size_t c = tms.find_first_of(":"); c != string::npos; c = c = tms.find_first_of(":")){
+	      tms.erase(c,1);
+	}
+
+	/*
+	std::string substr = tms.substr(0, 13);
+	std::string tms_new = substr + "000";
+	*/    
+	std::string bytes = rec[1];
+
+	for(size_t c = bytes.find_first_of("\""); c != string::npos; c = c = bytes.find_first_of("\"")){
+    	      bytes.erase(c,1);
+	}
+
+	// cout << "tms:" << tms << endl;
+	key[row] = stoull(tms);
+	// cout << "key:" << key[row] << endl;
+	// value[row] = stol(bytes);
+	value[row] = 1; // stol(bytes);
+
+	csv_line_counter++;
+    }
+
+    transfer(key, value, key_out, value_out, kBytes, vBytes, data.size(), &new_size, thread_id);
+    travdirtime = stop_timer(&t);
+
+    clock_gettime(CLOCK_REALTIME, &startTime);
+    sleepTime.tv_sec = 0;
+    sleepTime.tv_nsec = 123;
+    
+    for(int i = 0; i < new_size; i++)
+      {
+	iTbb_Vec_timestamp::accessor tms;
+	TbbVec_timestamp.insert(tms, key_out[i]);
+	tms->second += value_out[i];
+      }
+
+    printf("[hashmap insertion]");
+    clock_gettime(CLOCK_REALTIME, &endTime);
+    if (endTime.tv_nsec < startTime.tv_nsec) {
+      printf("%ld.%09ld", endTime.tv_sec - startTime.tv_sec - 1
+	     ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
+    } else {
+      printf("%ld.%09ld", endTime.tv_sec - startTime.tv_sec
+	     ,endTime.tv_nsec - startTime.tv_nsec);
+    }
+    printf(" sec \n");
+    
+    /*
+    get_cpu_times(idle_time, total_time);
+    const float idle_time_delta = idle_time - previous_idle_time;
+    const float total_time_delta = total_time - previous_total_time;
+    const float utilization = 100.0 * (1.0 - idle_time_delta / total_time_delta);
+
+    struct rusage r;
+    getrusage(RUSAGE_SELF, &r);    
+    gettimeofday(&tv, NULL);
+    */
+    // printf("%ld %06lu\n", tv.tv_sec, tv.tv_usec);
+
+    /*
+    clock_t end = clock();
+    const double time = static_cast<double>(end - start) / CLOCKS_PER_SEC * 1000.0;
+    
+    std::cout << "[log]," << tv.tv_sec << "," << global_counter << "," << utilization << "," << r.ru_maxrss << "," << time << std::endl;
+    */
+
+    global_counter++;
+    
 }
 
 void initqueue(queue_t* q) {
@@ -515,8 +425,6 @@ void worker_func(thread_arg_t* arg) {
 
     int thread_id = arg->id;
     
-    char* filelist_name = arg->filelist_name;
-    
 #ifdef __CPU_SET
     cpu_set_t mask;    
     __CPU_ZERO(&mask);
@@ -534,7 +442,7 @@ void worker_func(thread_arg_t* arg) {
         if (strncmp(fname, END_MARK_FNAME, END_MARK_FLENGTH + 1) == 0)
             break;
 
-        n = traverse_file(fname, filelist_name, thread_id);
+        n = traverse_file(fname, thread_id);
         pthread_mutex_lock(&result.mutex);
 
         if (n > result.num) {
@@ -557,16 +465,14 @@ void worker_func(thread_arg_t* arg) {
         if (strncmp(fname, END_MARK_FNAME, END_MARK_FLENGTH + 1) == 0)
             break;
 
-        n = traverse_file(fname, filelist_name, thread_id);
+        n = traverse_file(fname, thread_id);
 
-	/*
         if (n > my_result_num) {
             my_result_num = n;
             my_result_len = flen;
             my_result_fname = (char*)alloca(flen);
             strcpy(my_result_fname, fname);
         }
-	*/
     }
     pthread_mutex_lock(&result.mutex);
     if (my_result_num > result.num) {
@@ -606,7 +512,13 @@ int main(int argc, char* argv[]) {
         printf("Usage: search_strings PATTERN [DIR]\n"); return 0;
     }
     */
-    
+
+    /*
+    isCapableP2P(4);
+    enableP2P(4);
+    allocateCUDAmemory(4);
+    */    
+
     cpu_num = sysconf(_SC_NPROCESSORS_CONF);
 
     initqueue(&q);
@@ -615,7 +527,6 @@ int main(int argc, char* argv[]) {
         targ[i].q = &q;
         // targ[i].srchstr = argv[1];
         targ[i].dirname = argv[1];
-	targ[i].filelist_name = argv[2];
         targ[i].filenum = 0;
         targ[i].cpuid = i%cpu_num;
     }
@@ -632,7 +543,6 @@ int main(int argc, char* argv[]) {
     pthread_create(&master, NULL, (void*)master_func, (void*)&targ[0]);
     for (i = 1; i < thread_num; ++i) {
         targ[i].id = i;
-	cout << "[" << now_str() << "]" << " thread - " << i << " launched." << endl; 
         pthread_create(&worker[i], NULL, (void*)worker_func, (void*)&targ[i]);
     }
 	
@@ -641,45 +551,77 @@ int main(int argc, char* argv[]) {
 
     // print_result(&targ[0]);
 
-    // double avg = global_duration / (double)global_counter;
-    // cout << global_counter << endl;
-    // printf("avg:%10f\n", avg);
+    /*
+    typedef tbb::concurrent_hash_map<long, int> iTbb_Vec_timestamp;
+    static iTbb_Vec_timestamp TbbVec_timestamp; 
+    */
 
-    printf("total# of files :%d\n", global_counter);
-    //cout << "[insertion]avg time for insertion:" << avg << endl;
+    size_t kBytes = TbbVec_timestamp.size() * sizeof(unsigned long long);
+    unsigned long long *key;
+    key = (unsigned long long *)malloc(kBytes);
+
+    size_t vBytes = TbbVec_timestamp.size() * sizeof(long);
+    long *value;
+    value = (long *)malloc(vBytes);
+
+    unsigned long long *key_out;
+    key_out = (unsigned long long *)malloc(kBytes);
     
-    // printf("[insertion]total duration time insertion:%f\n", global_duration);
-    // cout << "avg:" << avg << endl;
-    
+    long *value_out;
+    value_out = (long *)malloc(vBytes);
+
+    i = 0;
+    for(auto itr = TbbVec_timestamp.begin(); itr != TbbVec_timestamp.end(); ++itr) {
+      key[i] = (unsigned long long)(itr->first);
+      value[i] = (long)(itr->second);
+      i++;
+    }
+
     clock_gettime(CLOCK_REALTIME, &startTime);
     sleepTime.tv_sec = 0;
     sleepTime.tv_nsec = 123;
     
+    sort(key, value, key_out, value_out, kBytes, vBytes, TbbVec_timestamp.size(),0);
+
+    clock_gettime(CLOCK_REALTIME, &endTime);
+
+    printf("[sort]");
+    if (endTime.tv_nsec < startTime.tv_nsec) {
+      printf("%ld.%09ld", endTime.tv_sec - startTime.tv_sec - 1
+	     ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
+    } else {
+      printf("%ld.%09ld", endTime.tv_sec - startTime.tv_sec
+	     ,endTime.tv_nsec - startTime.tv_nsec);
+    }
+    printf(" sec\n");
+    
+    printf("Tbbvec size %d \n", TbbVec_timestamp.size());
+    
+    ofstream outputfile("tmp-counts");
+    for(i = 0; i < TbbVec_timestamp.size(); i++) {
+
+      // cout << key_out[i] << endl;
+      std::string timestamp = to_string(key_out[i]);
+
+      if(timestamp.length() == 14)
+	{	
+	  outputfile << timestamp.substr(0,4) << "-" << timestamp.substr(4,2) << "-" << timestamp.substr(6,2) << " "
+		 << timestamp.substr(8,2) << ":" << timestamp.substr(10,2) << ":" << timestamp.substr(12,2)
+		 << ","	<< value_out[i] << endl;
+	}
+    }
+    outputfile.close();
+    
+    
+    /*
     std::map<unsigned long long, long> final;
 
-    int tmp_counter = 0;
     for(auto itr = TbbVec_timestamp.begin(); itr != TbbVec_timestamp.end(); ++itr) {
       final.insert(std::make_pair((unsigned long long)(itr->first), long(itr->second)));
-      tmp_counter++;
-    }
-
-    char str[100];
-    char *ends;
-	
-    clock_gettime(CLOCK_REALTIME, &endTime);
-    if (endTime.tv_nsec < startTime.tv_nsec) {
-      sprintf(str, "%ld.%ld", endTime.tv_sec - startTime.tv_sec - 1 ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec);
-    } else {
-      sprintf(str,"%ld.%ld", endTime.tv_sec - startTime.tv_sec ,endTime.tv_nsec - startTime.tv_nsec);
     }
     
-    // double tmp = atof(str);
-    double tmp = strtod( str, &ends );
-    // printf("[insertion and sorting] elapsed time of sort:%f - %d \n",tmp, tmp_counter);
-
     ofstream outputfile("tmp-counts");
     for(auto itr = final.begin(); itr != final.end(); ++itr) {
-
       std::string timestamp = to_string(itr->first);
 
       outputfile << timestamp.substr(0,4) << "-" << timestamp.substr(4,2) << "-" << timestamp.substr(6,2) << " "
@@ -688,9 +630,12 @@ int main(int argc, char* argv[]) {
 		 << itr->second << endl; 
     }
     outputfile.close();
+    */
 
-    cout << "FINISHED - INGRESS:" << egress_counter_global << ":EGRESS:" << ingress_counter_global << endl;
-    cout << "# of worker threads:" << WORKER_THREAD_NUM << endl;
-    
+    /*
+    disableP2P(4);
+    freeCUDAmemory(4);
+    */    
+
     return 0;
 }

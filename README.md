@@ -1,6 +1,8 @@
 # Usenix LISA 2019
 Multi-GPU Accelerated Processing of Time-Series Data of Huge Academic Backbone Network in ELK Stack
 
+<img src="pipeline-usenix-lisa-2019.jpg">
+
 # [0] Source tree
 
 <pre>

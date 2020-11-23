@@ -45,7 +45,7 @@ using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 33
+#define WORKER_THREAD_NUM 11
 #define MAX_QUEUE_NUM 128
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
@@ -163,10 +163,11 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
   int netmask;
   std::map <int,int> found_flag;
   std::map <int,int> found_flag_2;
-
+  std::map <int,int> destPort2;
+ 
   struct timespec startTime, endTime, sleepTime;
   unsigned int t, travdirtime;
-  
+
   try {
 
     const string list_file = string(filename_list);
@@ -204,8 +205,9 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
       {
 	found_flag[i] = 0;
 	found_flag_2[i] = 0;
+	destPort2[i] = 0;
       }
-    
+
     counter = 0;
     for (unsigned int row = 0; row < list_data.size(); row++) {
       
@@ -262,6 +264,7 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
 	    
 	std::string srcIP = rec2[27];
 	std::string destIP = rec2[20];
+	std::string destPort = rec2[19];
 	
 	for(size_t c = srcIP.find_first_of("\""); c != string::npos; c = c = srcIP.find_first_of("\"")){
 	  srcIP.erase(c,1);
@@ -270,6 +273,10 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
 	for(size_t c = destIP.find_first_of("\""); c != string::npos; c = c = destIP.find_first_of("\"")){
 	  destIP.erase(c,1);
 	}
+	for(size_t c = destPort.find_first_of("\""); c != string::npos; c = c = destPort.find_first_of("\"")){
+	  destPort.erase(c,1);
+	  destPort2[row2] = atoi(destPort.c_str());
+	} 
 	
 	std::string srcIPstring;
 	for (const auto subStr : split_string_2(srcIP, del2)) {
@@ -328,8 +335,11 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
 	{
 	  if(result[i]==0)
 	    {
-	      found_flag[i] = 1;
-	      ingress_counter_global++;
+	      if(destPort2[i] == 25)
+		{
+		  found_flag[i] = 1;
+		  ingress_counter_global++;
+		}
 	    }
 	}
 
@@ -360,8 +370,11 @@ int traverse_file(char* filename, char* filename_list, int thread_id) {
 	{
 	  if(result[i]==0)
 	    {
-	      found_flag_2[i] = 1;
-	      egress_counter_global++;
+	      if(destPort2[i] == 25)
+		{
+		  found_flag_2[i] = 1;
+		  egress_counter_global++;
+		}
 	    }
 	}
 
@@ -735,7 +748,6 @@ int main(int argc, char* argv[]) {
     outputfile.close();
 
     cout << "FINISHED: " << ingress_counter_global << ":" << egress_counter_global << endl;
-    cout << "# of worker threads: " << WORKER_THREAD_NUM << endl;
     
     return 0;
 }
