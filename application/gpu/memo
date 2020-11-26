@@ -1,0 +1,5 @@
+cat header |  sed -e 's/,/\n/g' | nl
+
+cat list | sed -e 's/\[//g' | sed -e 's/\]//g'
+
+
