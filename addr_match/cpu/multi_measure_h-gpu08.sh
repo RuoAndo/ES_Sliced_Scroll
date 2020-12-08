@@ -63,6 +63,9 @@ run_time_minutes=`echo $(( ${run_time} / 60))`
 cp  ./ingress_${REGION_NAME}_${date}/* /mnt/nvme4/ingress/
 cp  ./egress_${REGION_NAME}_${date}/* /mnt/nvme4/egress/
 
+cp  ./ingress_${REGION_NAME}_${date}/* /mnt/nvme9/ingress/
+cp  ./egress_${REGION_NAME}_${date}/* /mnt/nvme9/egress/
+
 echo "ELAPSED TIME:"${REGION_NAME}":"${date}":"$run_time":"$run_time_minutes
 du -h ${BASEDIR}${date} 
 
