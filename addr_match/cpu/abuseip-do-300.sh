@@ -7,4 +7,4 @@ g++ -o rand rand.cpp
 #shuf -n 1000 blacklist.txt > tmp
 #./append.sh tmp | tee list-abuseipdb
 
-#./multi_measure_2.sh abuseipdb
+./multi_measure_2.sh abuseipdb
