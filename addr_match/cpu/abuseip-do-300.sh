@@ -1,6 +1,6 @@
 cp /root/blacklist.txt .
 
-g++ -o rand rand.cpp
+g++ -o rand rand.cpp -std=c++11
 ./rand 300 > list-rand
 ./listgen.sh list-rand > list-abuseipdb
 
