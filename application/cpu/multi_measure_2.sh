@@ -22,6 +22,7 @@ mkdir egress_${REGION_NAME}_${date}
 ./build.sh multi_measure
 
 echo "copying..."
+time du -h /mnt/data/${date} 
 time cp -r /mnt/data/${date} .
 time ./multi_measure $date list-${REGION_NAME}
 
