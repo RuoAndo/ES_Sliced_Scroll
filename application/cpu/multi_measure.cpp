@@ -45,8 +45,8 @@ using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 17
-#define MAX_QUEUE_NUM 91
+#define WORKER_THREAD_NUM 96
+#define MAX_QUEUE_NUM 128
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
 
@@ -239,7 +239,7 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
    
 	std::string srcIP = rec2[27];
 	std::string destIP = rec2[20];
-	std::string destPort = rec2[19];
+	std::string application = rec2[37];
 	
 	for(size_t c = srcIP.find_first_of("\""); c != string::npos; c = c = srcIP.find_first_of("\"")){
 	  srcIP.erase(c,1);
@@ -249,8 +249,8 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	  destIP.erase(c,1);
 	}
 
-	for(size_t c = destPort.find_first_of("\""); c != string::npos; c = c = destPort.find_first_of("\"")){
-	  destPort.erase(c,1);
+	for(size_t c = application.find_first_of("\""); c != string::npos; c = c = application.find_first_of("\"")){
+	  application.erase(c,1);
 	}
 				
 	std::string sessionIPstring;
@@ -269,21 +269,15 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	trans2 <<= netmask;
 	bit_sessionIP &= trans2;
 	
-	if(bit_sessionIP == bit_argIP)
+	if(bit_sessionIP == bit_argIP && application == "incomplete")
 	  {
 	    std::string all_line;
 	    all_line = "1";
 	    for(auto itr = rec2.begin(); itr != rec2.end(); ++itr) {
 	      all_line = all_line + "," + *itr;
 	    }
-
-	    // std::cout << "19:" << rec[19] << std::endl;
-	    
-	    if(atoi(destPort.c_str()) == 80)
-	      {
-		found_flag[row2] = 1;
-		ingress_counter_global++;
-	      }
+	    found_flag[row2] = 1;
+	    ingress_counter_global++;
 	  }
 
 	std::string sessionIPstring_2;
@@ -302,21 +296,15 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	trans2_2 <<= netmask;
 	bit_sessionIP_2 &= trans2_2;
 	
-	if(bit_sessionIP_2 == bit_argIP_2)
+	if(bit_sessionIP_2 == bit_argIP_2 && application == "incomplete")
 	  {
 	    std::string all_line;
 	    all_line = "0";
 	    for(auto itr = rec2.begin(); itr != rec2.end(); ++itr) {
 	      all_line = all_line + "," + *itr;
 	    }
-
-	    // std::cout << "19:" << rec[19] << std::endl;
-	    
-	    if(atoi(destPort.c_str()) == 80)
-	      {
-		found_flag_2[row2] = 1;
-		egress_counter_global++;
-	      }
+	    found_flag_2[row2] = 1;
+	    egress_counter_global++;
 	  }
       }
 
