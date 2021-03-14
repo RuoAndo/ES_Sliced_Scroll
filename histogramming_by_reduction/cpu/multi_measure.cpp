@@ -556,7 +556,7 @@ int main(int argc, char* argv[]) {
     double tmp = strtod( str, &ends );
     printf("sort:%f\n",tmp);
 
-    ofstream outputfile("tmp-counts");
+    ofstream outputfile("histogrammed.txt");
     for(auto itr = final.begin(); itr != final.end(); ++itr) {
 
       std::string timestamp = to_string(itr->first);
