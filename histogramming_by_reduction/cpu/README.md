@@ -10,4 +10,4 @@
 # head -n 5 tmp-counts 
 </pre>
 
-<img src="histogrammed.txt.png">
+<img src="1.png">
