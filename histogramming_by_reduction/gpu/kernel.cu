@@ -34,7 +34,8 @@ string now() {
 
 void sort(unsigned long long *key, long *value, unsigned long long *key_out, long *value_out, int kBytes, int vBytes, size_t data_size, int thread_id)
 {
-    int GPU_number = thread_id % 1;
+    // int GPU_number = thread_id % 1;
+    int GPU_number = 0; // thread_id % 1;
     // struct timespec startTime, endTime, sleepTime;
     cudaSetDevice(GPU_number);
 
@@ -70,8 +71,8 @@ void sort(unsigned long long *key, long *value, unsigned long long *key_out, lon
 
 void transfer(unsigned long long *key, long *value, unsigned long long *key_out, long *value_out, int kBytes, int vBytes, size_t data_size, int *new_size, int thread_id)
 {
-    int GPU_number = thread_id % 4;
-    // int GPU_number = 0;
+    // int GPU_number = thread_id % 4;
+    int GPU_number = 0;
     cudaSetDevice(GPU_number);
 
     struct timespec startTime, endTime, sleepTime;
