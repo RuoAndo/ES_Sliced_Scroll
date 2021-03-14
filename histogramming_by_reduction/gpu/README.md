@@ -1,10 +1,10 @@
 # Reduction with CUDA Thrust
 
-THREAD=4, GPU=1
+THREAD=2, GPU=0
 
-grep THREAD_NUM multi12.cpp
+grep THREAD_NUM hist_gpu.cpp
 <pre>
-#define WORKER_THREAD_NUM 5                                    
+#define WORKER_THREAD_NUM 2                                  
 </pre>
 
 grep GPU_number kernel.cu -rin
@@ -19,8 +19,14 @@ grep GPU_number kernel.cu -rin
 # time ./rand_gen 10000
 # split -l 1000 random_data.txt 
 # mv x* ./data/
-#  ./build-traverse.sh multi12
-#  time ./multi12 data/
+#  ./build-traverse.sh hist_gpu
+#  time ./ hist_gpu data/
+</pre>
+
+<pre>
+# head -n 2 histogrammed.txt                                                                  
+2019-07-02 00:00:00.048,208
+2019-07-02 00:00:00.053,993
 </pre>
 
 When you are to change # of GPU to more than one, change GPU_number (kernel.cu).
