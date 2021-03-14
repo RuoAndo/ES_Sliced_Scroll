@@ -587,7 +587,7 @@ int main(int argc, char* argv[]) {
     printf(" sec\n");
     
     
-    ofstream outputfile("histogrammed,txt");
+    ofstream outputfile("histogrammed.txt");
     for(i = 0; i < TbbVec_timestamp.size(); i++) {
       std::string timestamp = to_string(key_out[i]);
 
