@@ -234,15 +234,21 @@ int traverse_file(char* filename, int thread_id) {
 	/*
 	std::string substr = tms.substr(0, 13);
 	std::string tms_new = substr + "000";
-	*/    
-	std::string bytes = rec[1];
+	*/
+	
+	std::string bytes = rec[2];
 
 	for(size_t c = bytes.find_first_of("\""); c != string::npos; c = c = bytes.find_first_of("\"")){
     	      bytes.erase(c,1);
 	}
-	
-	key[row] = stoull(tms);
-	value[row] = stol(bytes);
+
+	// cout << tms <<endl;
+
+	if(tms.length() == 17)
+	  {
+	    key[row] = stoull(tms);
+	    value[row] = stol(bytes);
+	  }
     }
 
     transfer(key, value, key_out, value_out, kBytes, vBytes, data.size(), &new_size, thread_id);
