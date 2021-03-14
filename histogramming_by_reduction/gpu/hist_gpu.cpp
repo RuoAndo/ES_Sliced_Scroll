@@ -209,9 +209,14 @@ int traverse_file(char* filename, int thread_id) {
       {
 	std::vector<string> rec = data[row];
 
-	std::string tms = rec[0];
+	std::string tms = rec[1];
 	std::string bytes = rec[3];
-	
+
+	/*
+	std::string substr = tms_pre.substr(0, 13);
+	std::string tms = substr + "000";
+	*/
+
 	for(size_t c = tms.find_first_of("\""); c != string::npos; c = c = tms.find_first_of("\"")){
     	      tms.erase(c,1);
 	}
@@ -232,10 +237,6 @@ int traverse_file(char* filename, int thread_id) {
 	      tms.erase(c,1);
 	}
 
-	/*
-	std::string substr = tms.substr(0, 13);
-	std::string tms_new = substr + "000";
-	*/
 	
 	for(size_t c = bytes.find_first_of("\""); c != string::npos; c = c = bytes.find_first_of("\"")){
     	      bytes.erase(c,1);
@@ -243,11 +244,11 @@ int traverse_file(char* filename, int thread_id) {
 
 	// cout << tms <<endl;
 
-	if(tms.length() == 17)
-	  {
+	// if(tms.length() == 17)
+	//  {
 	    key[row] = stoull(tms);
 	    value[row] = stol(bytes);
-	  }
+	//  }
     }
 
     transfer(key, value, key_out, value_out, kBytes, vBytes, data.size(), &new_size, thread_id);
