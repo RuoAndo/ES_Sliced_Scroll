@@ -32,3 +32,5 @@ grep GPU_number kernel.cu -rin
 </pre>
 
 When you are to change # of GPU to more than one, change GPU_number (kernel.cu).
+
+<img src="1.png">
