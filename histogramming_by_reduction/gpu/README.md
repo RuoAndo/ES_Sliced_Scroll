@@ -1,5 +1,7 @@
 # Reduction with CUDA Thrust
 
+<img src="tiling.png">
+
 THREAD=2, GPU=0
 
 grep THREAD_NUM hist_gpu.cpp
