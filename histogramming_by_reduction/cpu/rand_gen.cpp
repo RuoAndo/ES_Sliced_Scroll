@@ -6,7 +6,8 @@
 #include <random>
 #include <vector>
 #include <bitset>
-#include<fstream>
+#include <fstream>
+#include <cmath>
 
 #include <functional> //for std::function
 #include <algorithm>  //for std::generate_n
@@ -74,6 +75,13 @@ int main( int argc, char* argv[] )
   }
   */
 
+  std::vector<int> sinwave;
+
+  for(int i = 0; i < N; i++) {
+    sinwave.push_back(int(std::sin(i)*1000000));
+    // cout << std::sin(i) * 1000000 << endl;
+  }
+  
   std::random_device rnd;
   std::mt19937 mt(rnd());
   std::uniform_int_distribution<long> randD(20190702, 20190702);
@@ -192,6 +200,8 @@ int main( int argc, char* argv[] )
 	       << tmpstring.substr( 12, 2 )
 	       << "\"" << "," ;
 
+    outputfile << "\"" << sinwave[i] << "\"" << ",";
+    
     outputfile << "\"" << GetRandom(1,1000) << "\"" << ",";
 
     std::random_device rnd;

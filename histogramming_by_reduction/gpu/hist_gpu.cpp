@@ -42,7 +42,7 @@ using namespace tbb;
 
 // 2 / 1024
 // #define WORKER_THREAD_NUM 9
-#define WORKER_THREAD_NUM 5
+#define WORKER_THREAD_NUM 2
 #define MAX_QUEUE_NUM 9
 // #define MAX_QUEUE_NUM 27
 #define END_MARK_FNAME   "///"
@@ -209,8 +209,14 @@ int traverse_file(char* filename, int thread_id) {
       {
 	std::vector<string> rec = data[row];
 
-	std::string tms = rec[0];
-	
+	std::string tms = rec[1];
+	std::string bytes = rec[3];
+
+	/*
+	std::string substr = tms_pre.substr(0, 13);
+	std::string tms = substr + "000";
+	*/
+
 	for(size_t c = tms.find_first_of("\""); c != string::npos; c = c = tms.find_first_of("\"")){
     	      tms.erase(c,1);
 	}
@@ -231,24 +237,18 @@ int traverse_file(char* filename, int thread_id) {
 	      tms.erase(c,1);
 	}
 
-	/*
-	std::string substr = tms.substr(0, 13);
-	std::string tms_new = substr + "000";
-	*/
 	
-	std::string bytes = rec[2];
-
 	for(size_t c = bytes.find_first_of("\""); c != string::npos; c = c = bytes.find_first_of("\"")){
     	      bytes.erase(c,1);
 	}
 
 	// cout << tms <<endl;
 
-	if(tms.length() == 17)
-	  {
+	// if(tms.length() == 17)
+	//  {
 	    key[row] = stoull(tms);
 	    value[row] = stol(bytes);
-	  }
+	//  }
     }
 
     transfer(key, value, key_out, value_out, kBytes, vBytes, data.size(), &new_size, thread_id);
@@ -588,7 +588,7 @@ int main(int argc, char* argv[]) {
     printf(" sec\n");
     
     
-    ofstream outputfile("tmp-counts");
+    ofstream outputfile("histogrammed.txt");
     for(i = 0; i < TbbVec_timestamp.size(); i++) {
       std::string timestamp = to_string(key_out[i]);
 

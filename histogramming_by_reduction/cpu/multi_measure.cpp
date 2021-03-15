@@ -200,7 +200,7 @@ int traverse_file(char* filename, int thread_id) {
 	    continue;
 	  }
 	    
-	std::string tms = rec[37];
+	std::string tms = rec[1];
 	
 	for(size_t c = tms.find_first_of("\""); c != string::npos; c = c = tms.find_first_of("\"")){
     	      tms.erase(c,1);
@@ -225,8 +225,8 @@ int traverse_file(char* filename, int thread_id) {
 	// key[row] = stoull(tms);
 	// value[row] = 1;
 
-	// std::string bytes = rec[20];
-	std::string bytes = "1";
+	std::string bytes = rec[3];
+	// std::string bytes = "1";
 
 	for(size_t c = bytes.find_first_of("\""); c != string::npos; c = c = bytes.find_first_of("\"")){
 	  bytes.erase(c,1);
@@ -556,7 +556,7 @@ int main(int argc, char* argv[]) {
     double tmp = strtod( str, &ends );
     printf("sort:%f\n",tmp);
 
-    ofstream outputfile("tmp-counts");
+    ofstream outputfile("histogrammed.txt");
     for(auto itr = final.begin(); itr != final.end(); ++itr) {
 
       std::string timestamp = to_string(itr->first);
