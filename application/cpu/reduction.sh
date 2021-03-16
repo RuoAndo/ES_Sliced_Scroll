@@ -3,7 +3,7 @@
 mkdir histo_egress_sinet
 mkdir histo_ingress_sinet
 
-date=$(date -d '2 day ago' "+%Y%m%d")
+date=$(date -d '3 day ago' "+%Y%m%d")
 echo $date
 
 ./cpu_reduction egress_sinet_${date}
