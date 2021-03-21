@@ -498,7 +498,8 @@ int main(int argc, char* argv[]) {
     int tmp_counter = 0;
     auto itr2 = final_2.begin();
     for(auto itr = final.begin(); itr != final.end(); ++itr) {
-      cout << itr->first << "," << itr->second << "," << itr2->second << endl;
+      if(itr->second > 3)
+	cout << itr->first << "," << itr->second << "," << itr2->second << endl;
       itr2++;
     }
       
