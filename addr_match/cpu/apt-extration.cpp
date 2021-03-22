@@ -50,6 +50,8 @@ using namespace tbb;
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
 
+#define PLOT_THRESHOLD 3 
+
 typedef tbb::concurrent_hash_map<string, long> iTbb_Vec_timestamp;
 static iTbb_Vec_timestamp TbbVec_timestamp;
 
@@ -171,26 +173,39 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	for (int i=0; i<strvec.size();i++)
 	  {
 
-	    tmpstring = strvec.at(21) + ":" + strvec.at(20) +":" + strvec.at(37) + ":" + strvec.at(28);
+	    // tmpstring = strvec.at(21) + ":" + strvec.at(20) +":" + strvec.at(37) + ":" + strvec.at(28);
+	    tmpstring = strvec.at(21) + ":" + strvec.at(37);
 	    
 	  }
       }
 
     if(counter > 0)
       {
+	// bytes - 42 / bytes_sent - 16 / bytes_received - 24
+	string byte = strvec.at(42);
+	for(size_t c =  byte.find_first_of("\""); c != string::npos; c = c =  byte.find_first_of("\"")){
+    	       byte.erase(c,1);
+	}
+	
+	string byte_sent = strvec.at(16);
+	for(size_t c =  byte_sent.find_first_of("\""); c != string::npos; c = c =  byte_sent.find_first_of("\"")){
+    	       byte_sent.erase(c,1);
+	}
+
+	string byte_received = strvec.at(24);
+	for(size_t c =  byte_received.find_first_of("\""); c != string::npos; c = c =  byte_received.find_first_of("\"")){
+    	       byte_received.erase(c,1);
+	}
+	
 	iTbb_Vec_timestamp::accessor t;
 	TbbVec_timestamp.insert(t, tmpstring);
-	t->second += 1;
+	t->second += stol(byte_sent);
 
 	iTbb_Vec_timestamp_2::accessor t_2;
 	TbbVec_timestamp_2.insert(t_2, tmpstring);
 
-	string byte_string = strvec.at(42);
-	for(size_t c =  byte_string.find_first_of("\""); c != string::npos; c = c =  byte_string.find_first_of("\"")){
-    	       byte_string.erase(c,1);
-	}
 	// cout << byte_string << endl;
-	t_2->second += stol(byte_string);
+	t_2->second += stol(byte_received);
       }
 	
     counter++;
@@ -498,7 +513,7 @@ int main(int argc, char* argv[]) {
     int tmp_counter = 0;
     auto itr2 = final_2.begin();
     for(auto itr = final.begin(); itr != final.end(); ++itr) {
-      if(itr->second > 3)
+      if(itr->second > PLOT_THRESHOLD)
 	cout << itr->first << "," << itr->second << "," << itr2->second << endl;
       itr2++;
     }
