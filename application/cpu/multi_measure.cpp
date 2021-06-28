@@ -45,7 +45,7 @@ using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 96
+#define WORKER_THREAD_NUM 64 
 #define MAX_QUEUE_NUM 128
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
@@ -240,6 +240,7 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	std::string srcIP = rec2[27];
 	std::string destIP = rec2[20];
 	std::string application = rec2[37];
+	std::string category = rec2[35];
 	
 	for(size_t c = srcIP.find_first_of("\""); c != string::npos; c = c = srcIP.find_first_of("\"")){
 	  srcIP.erase(c,1);
@@ -251,6 +252,10 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 
 	for(size_t c = application.find_first_of("\""); c != string::npos; c = c = application.find_first_of("\"")){
 	  application.erase(c,1);
+	}
+
+	for(size_t c = category.find_first_of("\""); c != string::npos; c = c = category.find_first_of("\"")){
+	  category.erase(c,1);
 	}
 				
 	std::string sessionIPstring;
@@ -268,8 +273,8 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	std::bitset<32> trans2(0xFFFFFFFF);
 	trans2 <<= netmask;
 	bit_sessionIP &= trans2;
-	
-	if(bit_sessionIP == bit_argIP && application == "incomplete")
+                                                      
+	if(bit_sessionIP == bit_argIP && category == "cryptocurrency")
 	  {
 	    std::string all_line;
 	    all_line = "1";
@@ -295,8 +300,9 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	std::bitset<32> trans2_2(0xFFFFFFFF);
 	trans2_2 <<= netmask;
 	bit_sessionIP_2 &= trans2_2;
-	
-	if(bit_sessionIP_2 == bit_argIP_2 && application == "incomplete")
+
+	                                                  
+	if(bit_sessionIP_2 == bit_argIP_2 && category == "cryptocurrency")
 	  {
 	    std::string all_line;
 	    all_line = "0";
