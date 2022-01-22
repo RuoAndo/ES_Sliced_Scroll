@@ -8,3 +8,7 @@ cat list | sed -e 's/\[//g' | sed -e 's/\]//g'
 
  2249  time ./do2.sh shanghai-2
   2250  time ./do2.sh shanghai-3
+
+ 957  grep physical.id /proc/cpuinfo | sort -u | wc -l
+  958  grep processor /proc/cpuinfo | wc -l
+
