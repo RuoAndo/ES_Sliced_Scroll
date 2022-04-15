@@ -45,7 +45,7 @@ using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 64 
+#define WORKER_THREAD_NUM 32 
 #define MAX_QUEUE_NUM 128
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
@@ -273,8 +273,9 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	std::bitset<32> trans2(0xFFFFFFFF);
 	trans2 <<= netmask;
 	bit_sessionIP &= trans2;
-                                                      
-	if(bit_sessionIP == bit_argIP && category == "cryptocurrency")
+	
+	// if(bit_sessionIP == bit_argIP && category == "cryptocurrency")
+	if(bit_sessionIP == bit_argIP && application == "unknown-tcp")
 	  {
 	    std::string all_line;
 	    all_line = "1";
