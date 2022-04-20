@@ -301,9 +301,9 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	std::bitset<32> trans2_2(0xFFFFFFFF);
 	trans2_2 <<= netmask;
 	bit_sessionIP_2 &= trans2_2;
-
 	                                                  
-	if(bit_sessionIP_2 == bit_argIP_2 && category == "cryptocurrency")
+	//if(bit_sessionIP_2 == bit_argIP_2 && category == "cryptocurrency")
+	if(bit_sessionIP == bit_argIP && application == "unknown-tcp" || application == "unknown-udp")
 	  {
 	    std::string all_line;
 	    all_line = "0";
