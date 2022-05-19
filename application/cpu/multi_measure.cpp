@@ -45,7 +45,7 @@ using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 48 
+#define WORKER_THREAD_NUM 48
 #define MAX_QUEUE_NUM 128
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
@@ -241,6 +241,7 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	std::string destIP = rec2[20];
 	std::string application = rec2[37];
 	std::string category = rec2[35];
+	std::string protocol = rec2[13];
 	
 	for(size_t c = srcIP.find_first_of("\""); c != string::npos; c = c = srcIP.find_first_of("\"")){
 	  srcIP.erase(c,1);
@@ -257,7 +258,11 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	for(size_t c = category.find_first_of("\""); c != string::npos; c = c = category.find_first_of("\"")){
 	  category.erase(c,1);
 	}
-				
+
+	for(size_t c = protocol.find_first_of("\""); c != string::npos; c = c = protocol.find_first_of("\"")){
+	  protocol.erase(c,1);
+	}
+	
 	std::string sessionIPstring;
 	for (const auto subStr : split_string_2(srcIP, del2)) {
 	  unsigned long ipaddr_src;
@@ -275,7 +280,8 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	bit_sessionIP &= trans2;
 	
 	// if(bit_sessionIP == bit_argIP && category == "cryptocurrency")
-	if(bit_sessionIP == bit_argIP && application == "insufficient-data")
+	// if(bit_sessionIP == bit_argIP && application == "tcp")
+	  if(bit_sessionIP == bit_argIP && protocol == "tcp")
 	  {
 	    std::string all_line;
 	    all_line = "1";
@@ -302,8 +308,9 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	trans2_2 <<= netmask;
 	bit_sessionIP_2 &= trans2_2;
 	                                                  
-	//if(bit_sessionIP_2 == bit_argIP_2 && category == "cryptocurrency")
-	if(bit_sessionIP_2 == bit_argIP && application == "insufficient-data")
+	  //if(bit_sessionIP_2 == bit_argIP_2 && category == "cryptocurrency")
+	  //if(bit_sessionIP_2 == bit_argIP && application == "insufficient-data")
+	  if(bit_sessionIP_2 == bit_argIP && protocol == "tcp")
 	  {
 	    std::string all_line;
 	    all_line = "0";
@@ -314,6 +321,7 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	    egress_counter_global++;
 	  }
       }
+	
 
       addr_counter++;
     }
