@@ -281,7 +281,7 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	
 	// if(bit_sessionIP == bit_argIP && category == "cryptocurrency")
 	// if(bit_sessionIP == bit_argIP && application == "tcp")
-	  if(bit_sessionIP == bit_argIP && protocol == "tcp")
+	  if(bit_sessionIP == bit_argIP && protocol == "tcp" && application == "incomplete")
 	  {
 	    std::string all_line;
 	    all_line = "1";
@@ -310,7 +310,7 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	                                                  
 	  //if(bit_sessionIP_2 == bit_argIP_2 && category == "cryptocurrency")
 	  //if(bit_sessionIP_2 == bit_argIP && application == "insufficient-data")
-	  if(bit_sessionIP_2 == bit_argIP && protocol == "tcp")
+	  if(bit_sessionIP_2 == bit_argIP && protocol == "tcp" && application == "incomplete")
 	  {
 	    std::string all_line;
 	    all_line = "0";
