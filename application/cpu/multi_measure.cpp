@@ -242,6 +242,8 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	std::string application = rec2[37];
 	std::string category = rec2[35];
 	std::string protocol = rec2[13];
+	std::string country_from = rec2[40];
+	std::string country_to = rec2[22];
 	
 	for(size_t c = srcIP.find_first_of("\""); c != string::npos; c = c = srcIP.find_first_of("\"")){
 	  srcIP.erase(c,1);
@@ -262,7 +264,15 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	for(size_t c = protocol.find_first_of("\""); c != string::npos; c = c = protocol.find_first_of("\"")){
 	  protocol.erase(c,1);
 	}
-	
+
+	for(size_t c = country_from.find_first_of("\""); c != string::npos; c = c = country_from.find_first_of("\"")){
+	  country_from.erase(c,1);
+	}
+
+	for(size_t c = country_to.find_first_of("\""); c != string::npos; c = c = country_to.find_first_of("\"")){
+	  country_to.erase(c,1);
+	}
+
 	std::string sessionIPstring;
 	for (const auto subStr : split_string_2(srcIP, del2)) {
 	  unsigned long ipaddr_src;
@@ -281,7 +291,8 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	
 	// if(bit_sessionIP == bit_argIP && category == "cryptocurrency")
 	// if(bit_sessionIP == bit_argIP && application == "tcp")
-	  if(bit_sessionIP == bit_argIP && protocol == "tcp" && application == "incomplete")
+	//  if(bit_sessionIP == bit_argIP && protocol == "tcp" && application == "incomplete")
+	if(bit_sessionIP == bit_argIP && country_to == "RU")
 	  {
 	    std::string all_line;
 	    all_line = "1";
@@ -310,7 +321,8 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
 	                                                  
 	  //if(bit_sessionIP_2 == bit_argIP_2 && category == "cryptocurrency")
 	  //if(bit_sessionIP_2 == bit_argIP && application == "insufficient-data")
-	  if(bit_sessionIP_2 == bit_argIP && protocol == "tcp" && application == "incomplete")
+	  //if(bit_sessionIP_2 == bit_argIP && protocol == "tcp" && application == "incomplete")
+	  if(bit_sessionIP_2 == bit_argIP && country_from == "RU")
 	  {
 	    std::string all_line;
 	    all_line = "0";
