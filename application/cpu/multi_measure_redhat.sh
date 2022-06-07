@@ -65,7 +65,7 @@ echo "ELAPSED TIME:"${REGION_NAME}":"${date}":"$run_time":"$run_time_minutes
 
 du -h ${BASEDIR}${date} 
 
-date=$(date -d '10 day ago' "+%Y%m%d")
+#date=$(date -d '10 day ago' "+%Y%m%d")
 rm -rf ./egress_${REGION_NAME}/${REGION_NAME}*${date}
 rm -rf ./ingress_${REGION_NAME}/${REGION_NAME}*${date}
 
