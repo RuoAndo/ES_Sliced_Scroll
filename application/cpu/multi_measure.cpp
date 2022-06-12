@@ -170,7 +170,14 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
     
     const string session_file = string(filename); 
     vector<vector<string>> session_data; 
-	
+
+    if (session_file.find("egress") != std::string::npos | session_file.find("ingress") != std::string::npos)
+    {
+      namespace fs = boost::filesystem;
+      const fs::path path(session_file);
+      fs:remove(path);
+    }
+    
     try {
       Csv objCsv(list_file);
       if (!objCsv.getCsv(list_data)) {
