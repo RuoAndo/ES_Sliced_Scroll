@@ -71,6 +71,8 @@ date=$(date -d '100 day ago' "+%Y%m%d")
 rm -rf ./egress_${REGION_NAME}/${REGION_NAME}*${date}
 rm -rf ./ingress_${REGION_NAME}/${REGION_NAME}*${date}
 
+date=$(date -d '2 day ago' "+%Y%m%d")
+echo $date
 du -h ./ingress_${REGION_NAME}_${date}
 du -h ./egress_${REGION_NAME}_${date}
 
