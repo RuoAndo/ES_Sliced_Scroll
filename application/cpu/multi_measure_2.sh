@@ -22,8 +22,8 @@ mkdir egress_${REGION_NAME}_${date}
 ./build.sh multi_measure
 
 echo "copying..."
-du -h /mnt/data/${date} 
-time cp -r /mnt/data/${date} .
+du -h /root/${date} 
+time cp -r /root/${date} .
 time ./multi_measure $date list-${REGION_NAME}
 
 ls ./${date}/*ingress > list
@@ -60,5 +60,26 @@ run_time_minutes=`echo $(( ${run_time} / 60))`
 
 echo "ELAPSED TIME:"${REGION_NAME}":"${date}":"$run_time":"$run_time_minutes
 
+./build.sh cpu_reduction
+
+mkdir histo_ingress_${REGION_NAME}
+mkdir histo_egress_${REGION_NAME}
+
+start_time=`date +%s`
+rm -rf tmp-counts
+rm -rf tmp
+./cpu_reduction ./ingress_${REGION_NAME}_${date}
+cat header-histo > tmp
+cat tmp-counts >> tmp 
+mv tmp ./histo_ingress_${REGION_NAME}/${date}
+
+rm -rf tmp-counts
+rm -rf tmp
+./cpu_reduction ./egress_${REGION_NAME}_${date}
+cat header-histo > tmp
+cat tmp-counts >> tmp 
+mv tmp ./histo_egress_${REGION_NAME}/${date}
+
 #scp -r egress_${REGION_NAME}_${date} 192.168.72.5:/mnt/sdd/nii-socs/
 #scp -r ingress_${REGION_NAME}_${date} 192.168.72.5:/mnt/sdd/nii-socs/
+
