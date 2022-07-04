@@ -76,5 +76,27 @@ echo $date
 du -h ./ingress_${REGION_NAME}_${date}
 du -h ./egress_${REGION_NAME}_${date}
 
+#./build.sh cpu_reduction
+./build.redhat.sh multi_measure
+
+mkdir histo_ingress_${REGION_NAME}
+mkdir histo_egress_${REGION_NAME}
+
+start_time=`date +%s`
+rm -rf tmp-counts
+rm -rf tmp
+export LD_LIBRARY_PATH=/root/boost_1_78_0/stage/lib; time ./cpu_reduction ./ingress_${REGION_NAME}_${date}
+cat header-histo > tmp
+cat tmp-counts >> tmp 
+mv tmp ./histo_ingress_${REGION_NAME}/${date}
+
+rm -rf tmp-counts
+rm -rf tmp
+export LD_LIBRARY_PATH=/root/boost_1_78_0/stage/lib; time ./cpu_reduction ./egress_${REGION_NAME}_${date}
+cat header-histo > tmp
+cat tmp-counts >> tmp 
+mv tmp ./histo_egress_${REGION_NAME}/${date}
+
+
 #scp -r egress_${REGION_NAME}_${date} 192.168.72.5:/mnt/sdd/nii-socs/
 #scp -r ingress_${REGION_NAME}_${date} 192.168.72.5:/mnt/sdd/nii-socs/
