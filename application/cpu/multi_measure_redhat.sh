@@ -77,7 +77,8 @@ du -h ./ingress_${REGION_NAME}_${date}
 du -h ./egress_${REGION_NAME}_${date}
 
 #./build.sh cpu_reduction
-./build.redhat.sh multi_measure
+#./build.redhat.sh multi_measure
+./build.redhat.sh cpu_reduction
 
 mkdir histo_ingress_${REGION_NAME}
 mkdir histo_egress_${REGION_NAME}
