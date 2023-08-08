@@ -36,18 +36,16 @@
 #include "csv.hpp"
 #include "timer.h"
 
-#define BOOST_NO_CXX11_SCOPED_ENUMS
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem.hpp>
-#undef BOOST_NO_CXX11_SCOPED_ENUMS
 
 using namespace std;
 using namespace tbb;
 
 // 2 / 1024
-#define WORKER_THREAD_NUM 32
+#define WORKER_THREAD_NUM 49
 #define MAX_QUEUE_NUM 97
 #define END_MARK_FNAME   "///"
 #define END_MARK_FLENGTH 3
@@ -174,14 +172,7 @@ int traverse_file(char* filename, char* filelist_name, int thread_id) {
     
     const string session_file = string(filename); 
     vector<vector<string>> session_data; 
-
-    if (session_file.find("egress") != std::string::npos | session_file.find("ingress") != std::string::npos)
-    {
-      namespace fs = boost::filesystem;
-      const fs::path path(session_file);
-      fs:remove(path);
-    }
-    
+	
     try {
       Csv objCsv(list_file);
       if (!objCsv.getCsv(list_data)) {
